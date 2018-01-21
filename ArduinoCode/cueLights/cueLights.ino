@@ -29,8 +29,8 @@ const long debounceTime = 200;
 
 
 void setup() {
-  Serial.begin(9600);
-  Serial.print("BOOTING");
+  Serial.begin(115200);
+  Serial.print("CUEBAUTODETECTONLINE\n");
 
   
   pinMode(STATIONONEpins[0], OUTPUT); //RedLED
