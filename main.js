@@ -29,6 +29,8 @@ global.createWindow = function() {
     mainWindow.focus();
     mainStartWindow.destroy(); //Close the other window
 
+	  // Open the DevTools.
+	  mainStartWindow.webContents.openDevTools()
     // Emitted when the window is closed.
     mainWindow.on('closed', function () {
         // Dereference the window object, usually you would store windows
@@ -49,8 +51,6 @@ function createStartWindow () {
     slashes: true
   }))
 
-  // Open the DevTools.
-  mainStartWindow.webContents.openDevTools()
 
   // Emitted when the window is closed.
   mainStartWindow.on('closed', function () {
