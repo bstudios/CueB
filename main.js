@@ -12,10 +12,12 @@ const url = require('url')
 let mainStartWindow;
 let mainWindow;
 let comPort;
-global.comPort = "";
+comPort = "";
+global.comPort = comPort;
 
-global.createWindow = function() {
+global.createWindow = function(comPortVar) {
     // Create the browser window.
+    global.comPort = comPortVar;
     mainWindow = new BrowserWindow({width: 1200, height: 600})
 
     // and load the index.html of the app.
@@ -30,7 +32,7 @@ global.createWindow = function() {
     mainStartWindow.destroy(); //Close the other window
 
 	  // Open the DevTools.
-	  mainStartWindow.webContents.openDevTools()
+	  mainWindow.webContents.openDevTools()
     // Emitted when the window is closed.
     mainWindow.on('closed', function () {
         // Dereference the window object, usually you would store windows
@@ -50,7 +52,6 @@ function createStartWindow () {
     protocol: 'file:',
     slashes: true
   }))
-
 
   // Emitted when the window is closed.
   mainStartWindow.on('closed', function () {
