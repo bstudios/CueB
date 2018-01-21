@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>CueLight</title>
+    <style>
+      body {
+        font-family: system, -apple-system, '.SFNSText-Regular', 'SF UI Text', 'Lucida Grande', 'Segoe UI', Ubuntu, Cantarell, sans-serif;
+        color: #fff;
+        background-color: #8aba87;
+        text-align: center;
+
+      }
+      h1 {
+        font-size: 150px;
+      }
+      h2 {
+        font-size: 40px;
+      }
+      p {
+        font-size: 15px;
+      }
+      content {
+        padding: 0;
+        margin: 0;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+      }
+
+
+      #close {
+        color: white;
+        opacity: 0.7;
+        position: absolute;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 12px;
+        text-decoration: none;
+      }
+
+    </style>
+  </head>
+  <body>
+
+
+
+
+    <div id="content">
+      <h1>CueB</h1>
+      <!--<p>Chromium <script>document.write(process.versions.chrome)</script><br/>
+      Electron <script>document.write(process.versions.electron)</script><br/>
+      Serialport <script>document.write(require('serialport/package').version)</script>.</p>
+      <br/><br/>-->
+      <h2 style="font-style: italic;">Searching for CueB Device</h2>
+    </div>
+
+    <a id="close" href="javascript:window.close()">Close</a>
+  </body>
+
+  <script>
+    // You can also require other files to run in this process
+    require('./master.js')
+  </script>
+</html>
