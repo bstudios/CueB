@@ -30,16 +30,18 @@ const long debounceTime = 200;
 
 void setup() {
   Serial.begin(115200);
-  Serial.print("CUEBAUTODETECTONLINE\n");
+  sendSerial("CUEBAUTODETECTONLINE\n");
 
-  
+
   pinMode(STATIONONEpins[0], OUTPUT); //RedLED
   pinMode(STATIONONEpins[1], OUTPUT); //GreenLED
   pinMode(STATIONONEpins[2] , INPUT_PULLUP); //AcknowledgeButton
   pinMode(STATIONONEpins[3] , INPUT_PULLUP); //StandbyButton
   pinMode(STATIONONEpins[4] , INPUT_PULLUP); //GoButton
   digitalWrite(STATIONONEpins[0], STATIONONEredLEDState);
+  sendSerial("LEDSTATE" + "," + "1" + "," + "0" + "," + STATIONONEredLEDState);
   digitalWrite(STATIONONEpins[1], STATIONONEgreenLEDState);
+  sendSerial("LEDSTATE" + "," + "1" + "," + "1" + "," + STATIONONEgreenLEDState);
   /*
      COPY AND PASTE BELOW FOR DUPLICATING UP
   */
@@ -49,7 +51,9 @@ void setup() {
   pinMode(STATIONTWOpins[3] , INPUT_PULLUP); //StandbyButton
   pinMode(STATIONTWOpins[4] , INPUT_PULLUP); //GoButton
   digitalWrite(STATIONTWOpins[0], STATIONTWOredLEDState);
+  sendSerial("LEDSTATE" + "," + "1" + "," + "0" + "," + STATIONTWOredLEDState);
   digitalWrite(STATIONTWOpins[1], STATIONTWOgreenLEDState);
+  sendSerial("LEDSTATE" + "," + "1" + "," + "1" + "," + STATIONTWOgreenLEDState);
   /*
       MASTER BUTONS ETC.
   */
@@ -58,9 +62,14 @@ void setup() {
 
 
 
-  
-  
-  Serial.print("ONLINE");
+
+
+  sendSerial("ONLINE");
+}
+bool sendSerial(char data) {
+  bool result;
+  serial.write(data + "!");
+  return result;
 }
 void loop() {
   unsigned long currentMillis = millis(); //Current time in milliseconds (resets after 50 days)
@@ -72,26 +81,32 @@ void loop() {
     if (STATIONONEgreenLEDState == HIGH || STATIONTWOgreenLEDState == HIGH) {
       STATIONONEgreenLEDState = LOW;
       digitalWrite(STATIONONEpins[1], STATIONONEgreenLEDState);
+      sendSerial("LEDSTATE" + "," + "1" + "," + "1" + "," + STATIONONEgreenLEDState);
 
       STATIONTWOgreenLEDState = LOW;
       digitalWrite(STATIONTWOpins[1], STATIONTWOgreenLEDState);
+      sendSerial("LEDSTATE" + "," + "1" + "," + "1" + "," + STATIONTWOgreenLEDState);
     } else {
       STATIONONEgreenLEDState = HIGH;
       digitalWrite(STATIONONEpins[1], STATIONONEgreenLEDState);
+      sendSerial("LEDSTATE" + "," + "1" + "," + "1" + "," + STATIONONEgreenLEDState);
 
       STATIONTWOgreenLEDState = HIGH;
       digitalWrite(STATIONTWOpins[1], STATIONTWOgreenLEDState);
+      sendSerial("LEDSTATE" + "," + "1" + "," + "1" + "," + STATIONTWOgreenLEDState);
 
       //Turn off any standbys
       STATIONONEredLEDState = LOW;
       STATIONONEredLEDFlash = false;
       STATIONONEredLEDCall = false;
       digitalWrite(STATIONONEpins[0], STATIONONEredLEDState);
+      sendSerial("LEDSTATE" + "," + "1" + "," + "0" + "," + STATIONONEredLEDState);
 
       STATIONTWOredLEDState = LOW;
       STATIONTWOredLEDFlash = false;
       STATIONTWOredLEDCall = false;
       digitalWrite(STATIONTWOpins[0], STATIONTWOredLEDState);
+      sendSerial("LEDSTATE" + "," + "1" + "," + "0" + "," + STATIONTWOredLEDState);
     }
 
 
@@ -109,11 +124,13 @@ void loop() {
       STATIONONEredLEDFlash = false;
       STATIONONEredLEDCall = false;
       digitalWrite(STATIONONEpins[0], STATIONONEredLEDState);
+      sendSerial("LEDSTATE" + "," + "1" + "," + "0" + "," + STATIONONEredLEDState);
 
       STATIONTWOredLEDState = LOW;
       STATIONTWOredLEDFlash = false;
       STATIONTWOredLEDCall = false;
       digitalWrite(STATIONTWOpins[0], STATIONTWOredLEDState);
+      sendSerial("LEDSTATE" + "," + "1" + "," + "0" + "," + STATIONTWOredLEDState);
     } else {
       STATIONONEredLEDFlash = true; //Make em flash
       STATIONTWOredLEDFlash = true;
@@ -122,8 +139,10 @@ void loop() {
       //Turn off GreenLEDs if they're on
       STATIONONEgreenLEDState = LOW;
       digitalWrite(STATIONONEpins[1], STATIONONEgreenLEDState);
+      sendSerial("LEDSTATE" + "," + "1" + "," + "1" + "," + STATIONONEgreenLEDState);
       STATIONTWOgreenLEDState = LOW;
       digitalWrite(STATIONTWOpins[1], STATIONTWOgreenLEDState);
+      sendSerial("LEDSTATE" + "," + "1" + "," + "1" + "," + STATIONTWOgreenLEDState);
 
     }
   } else if (digitalRead(standbyMaster) == HIGH && masterButtonStates[1] == true) { //Reset it if it's been released
@@ -145,6 +164,7 @@ void loop() {
         STATIONONEredLEDState = LOW;
       }
       digitalWrite(STATIONONEpins[0], STATIONONEredLEDState);
+      sendSerial("LEDSTATE" + "," + "1" + "," + "0" + "," + STATIONONEredLEDState);
     }
   } else if (STATIONONEredLEDCall) { //The falshing for calling themselves
     if (currentMillis - STATIONONEflashTimer >= flashCallInterval) {
@@ -155,6 +175,7 @@ void loop() {
         STATIONONEredLEDState = LOW;
       }
       digitalWrite(STATIONONEpins[0], STATIONONEredLEDState);
+      sendSerial("LEDSTATE" + "," + "1" + "," + "0" + "," + STATIONONEredLEDState);
     }
   }
   //  END FLASH LOGIC
@@ -168,12 +189,15 @@ void loop() {
     STATIONONEredLEDCall = false;
     STATIONONEredLEDState = LOW;
     digitalWrite(STATIONONEpins[0], STATIONONEredLEDState);
+    sendSerial("LEDSTATE" + "," + "1" + "," + "0" + "," + STATIONONEredLEDState);
     if (STATIONONEgreenLEDState == LOW) {
       STATIONONEgreenLEDState = HIGH;
       digitalWrite(STATIONONEpins[1], STATIONONEgreenLEDState);
+      sendSerial("LEDSTATE" + "," + "1" + "," + "1" + "," + STATIONONEgreenLEDState);
     } else {
       STATIONONEgreenLEDState = LOW;
       digitalWrite(STATIONONEpins[1], STATIONONEgreenLEDState);
+      sendSerial("LEDSTATE" + "," + "1" + "," + "1" + "," + STATIONONEgreenLEDState);
     }
   } else if (digitalRead(STATIONONEpins[4]) == HIGH && STATIONONEbuttonStates[2] == true) { //Reset it if it's been released
     STATIONONEbuttonStates[2] = false;
@@ -188,6 +212,7 @@ void loop() {
     if (STATIONONEredLEDFlash == false && STATIONONEredLEDCall == false) { //If you want to stand them by
       STATIONONEgreenLEDState = LOW;
       digitalWrite(STATIONONEpins[1], STATIONONEgreenLEDState);
+      sendSerial("LEDSTATE" + "," + "1" + "," + "1" + "," + STATIONONEgreenLEDState);
       STATIONONEredLEDFlash = true;
     } else { //Cancelling a standby or a call
       //STOP THE RED FLASHING - but be careful - when you do this you must turn off the LED as well otherwise it might be left on
@@ -195,6 +220,7 @@ void loop() {
       STATIONONEredLEDCall = false;
       STATIONONEredLEDState = LOW;
       digitalWrite(STATIONONEpins[0], STATIONONEredLEDState);
+      sendSerial("LEDSTATE" + "," + "1" + "," + "0" + "," + STATIONONEredLEDState);
     }
   } else if (digitalRead(STATIONONEpins[3]) == HIGH && STATIONONEbuttonStates[1] == true) { //Reset it if it's been released
     STATIONONEbuttonStates[1] = false;
@@ -209,18 +235,22 @@ void loop() {
     if (STATIONONEgreenLEDState == LOW && STATIONONEredLEDFlash) { //They are acknowledging a standby - make it red light
       STATIONONEredLEDState = HIGH;
       digitalWrite(STATIONONEpins[0], STATIONONEredLEDState);
+      sendSerial("LEDSTATE" + "," + "1" + "," + "0" + "," + STATIONONEredLEDState);
     } else if (STATIONONEgreenLEDState == LOW && STATIONONEredLEDFlash == false && STATIONONEredLEDCall == false && STATIONONEredLEDState == HIGH) { //They are turning their light off after they've been stood by
       STATIONONEredLEDState = LOW;
       digitalWrite(STATIONONEpins[0], STATIONONEredLEDState);
+      sendSerial("LEDSTATE" + "," + "1" + "," + "0" + "," + STATIONONEredLEDState);
     } else if (STATIONONEgreenLEDState == LOW && STATIONONEredLEDFlash == false && STATIONONEredLEDCall) { //They are turning their calling function off
       STATIONONEredLEDCall = false;
       STATIONONEredLEDState = LOW;
       digitalWrite(STATIONONEpins[0], STATIONONEredLEDState);
+      sendSerial("LEDSTATE" + "," + "1" + "," + "0" + "," + STATIONONEredLEDState);
     } else if (STATIONONEgreenLEDState == LOW && STATIONONEredLEDFlash == false) { //They are turning their call light on
       STATIONONEredLEDCall = true;
     } else if (STATIONONEgreenLEDState == HIGH && STATIONONEredLEDFlash == false && allowGreenOff) { //They are turning out the go
       STATIONONEredLEDState = LOW;
       digitalWrite(STATIONONEpins[0], STATIONONEredLEDState);
+      sendSerial("LEDSTATE" + "," + "1" + "," + "0" + "," + STATIONONEredLEDState);
 
       STATIONONEgreenLEDState == LOW;
       digitalWrite(STATIONONEpins[1], STATIONONEredLEDState);
@@ -244,6 +274,7 @@ void loop() {
         STATIONTWOredLEDState = LOW;
       }
       digitalWrite(STATIONTWOpins[0], STATIONTWOredLEDState);
+      sendSerial("LEDSTATE" + "," + "1" + "," + "0" + "," + STATIONTWOredLEDState);
     }
   } else if (STATIONTWOredLEDCall) { //The falshing for calling themselves
     if (currentMillis - STATIONTWOflashTimer >= flashCallInterval) {
@@ -254,6 +285,7 @@ void loop() {
         STATIONTWOredLEDState = LOW;
       }
       digitalWrite(STATIONTWOpins[0], STATIONTWOredLEDState);
+      sendSerial("LEDSTATE" + "," + "1" + "," + "0" + "," + STATIONTWOredLEDState);
     }
   }
   //  END FLASH LOGIC
@@ -267,12 +299,15 @@ void loop() {
     STATIONTWOredLEDCall = false;
     STATIONTWOredLEDState = LOW;
     digitalWrite(STATIONTWOpins[0], STATIONTWOredLEDState);
+    sendSerial("LEDSTATE" + "," + "1" + "," + "0" + "," + STATIONTWOredLEDState);
     if (STATIONTWOgreenLEDState == LOW) {
       STATIONTWOgreenLEDState = HIGH;
       digitalWrite(STATIONTWOpins[1], STATIONTWOgreenLEDState);
+      sendSerial("LEDSTATE" + "," + "1" + "," + "1" + "," + STATIONTWOgreenLEDState);
     } else {
       STATIONTWOgreenLEDState = LOW;
       digitalWrite(STATIONTWOpins[1], STATIONTWOgreenLEDState);
+      sendSerial("LEDSTATE" + "," + "1" + "," + "1" + "," + STATIONTWOgreenLEDState);
     }
   } else if (digitalRead(STATIONTWOpins[4]) == HIGH && STATIONTWObuttonStates[2] == true) { //Reset it if it's been released
     STATIONTWObuttonStates[2] = false;
@@ -287,6 +322,7 @@ void loop() {
     if (STATIONTWOredLEDFlash == false && STATIONTWOredLEDCall == false) { //If you want to stand them by
       STATIONTWOgreenLEDState = LOW;
       digitalWrite(STATIONTWOpins[1], STATIONTWOgreenLEDState);
+      sendSerial("LEDSTATE" + "," + "1" + "," + "1" + "," + STATIONTWOgreenLEDState);
       STATIONTWOredLEDFlash = true;
     } else { //Cancelling a standby or a call
       //STOP THE RED FLASHING - but be careful - when you do this you must turn off the LED as well otherwise it might be left on
@@ -294,6 +330,7 @@ void loop() {
       STATIONTWOredLEDCall = false;
       STATIONTWOredLEDState = LOW;
       digitalWrite(STATIONTWOpins[0], STATIONTWOredLEDState);
+      sendSerial("LEDSTATE" + "," + "1" + "," + "0" + "," + STATIONTWOredLEDState);
     }
   } else if (digitalRead(STATIONTWOpins[3]) == HIGH && STATIONTWObuttonStates[1] == true) { //Reset it if it's been released
     STATIONTWObuttonStates[1] = false;
@@ -308,18 +345,22 @@ void loop() {
     if (STATIONTWOgreenLEDState == LOW && STATIONTWOredLEDFlash) { //They are acknowledging a standby - make it red light
       STATIONTWOredLEDState = HIGH;
       digitalWrite(STATIONTWOpins[0], STATIONTWOredLEDState);
+      sendSerial("LEDSTATE" + "," + "1" + "," + "0" + "," + STATIONTWOredLEDState);
     } else if (STATIONTWOgreenLEDState == LOW && STATIONTWOredLEDFlash == false && STATIONTWOredLEDCall == false && STATIONTWOredLEDState == HIGH) { //They are turning their light off after they've been stood by
       STATIONTWOredLEDState = LOW;
       digitalWrite(STATIONTWOpins[0], STATIONTWOredLEDState);
+      sendSerial("LEDSTATE" + "," + "1" + "," + "0" + "," + STATIONTWOredLEDState);
     } else if (STATIONTWOgreenLEDState == LOW && STATIONTWOredLEDFlash == false && STATIONTWOredLEDCall) { //They are turning their calling function off
       STATIONTWOredLEDCall = false;
       STATIONTWOredLEDState = LOW;
       digitalWrite(STATIONTWOpins[0], STATIONTWOredLEDState);
+      sendSerial("LEDSTATE" + "," + "1" + "," + "0" + "," + STATIONTWOredLEDState);
     } else if (STATIONTWOgreenLEDState == LOW && STATIONTWOredLEDFlash == false) { //They are turning their call light on
       STATIONTWOredLEDCall = true;
     } else if (STATIONTWOgreenLEDState == HIGH && STATIONTWOredLEDFlash == false && allowGreenOff) { //They are turning out the go
       STATIONTWOredLEDState = LOW;
       digitalWrite(STATIONTWOpins[0], STATIONTWOredLEDState);
+      sendSerial("LEDSTATE" + "," + "1" + "," + "0" + "," + STATIONTWOredLEDState);
 
       STATIONTWOgreenLEDState == LOW;
       digitalWrite(STATIONTWOpins[1], STATIONTWOredLEDState);
