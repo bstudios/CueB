@@ -23,6 +23,9 @@ const int buttonsDownState[buttonsCount] = {LOW,LOW,LOW}; //The state that the b
 const byte ledCount = 1; //The number of buttons currently in existence
 const byte ledPins[ledCount] = {13}; //The pins of each of the buttons currently in existence
 
+const int ledFrequencyStandby = 5; //Flash frequency for standby light (Hz) - beyond about 40 Hz it stops being obvious it's actually flashing
+const int ledFrequencyCallback = 10; //Flash frequency for callback light on controller (Hz)
+
 
 //  SETUP
 //      TEMPERATURE
@@ -35,8 +38,9 @@ unsigned long buttonsLastDebounceTime[buttonsCount]; //The last time each button
 unsigned long buttonsHeldTime[buttonsCount]; //How long button has been held for
 int buttonsState[buttonsCount];
 int buttonsLastState[buttonsCount];
-
-
+//      LEDs
+unsigned int ledFlashingFrequency[ledCount]; //How many Hz is this LED flashing at? 0 = not flashing
+unsigned long ledFlashingLastChangeTime[ledCount]; //When did this LED last change state?
 
 //  FUNCTIONS
 //      BUTTONS
@@ -65,7 +69,7 @@ bool writeToScreen(String text, int line) {
 }
 //      BUTTONS
 //        Check state of all the buttons and update their debounce timers accordingly
-void checkStateOfButtons() {
+void loopCheckStateOfButtons() {
     int i;
     for (i = 0; i < buttonsCount; i = i + 1) {
       //Handle the debouncing stuff for that button
@@ -100,18 +104,36 @@ void buttonReleased(int i, unsigned long holdTime) { //holdTime is how long the 
   Serial.println(String(i) + " RELEASED | Hold time (ms): " + String(holdTime));
     switch (i) {
     case 0:
-      ledOff(1);
+      ledOff(0);
       break;
   }
 }
 //      LEDs
 void ledOn(int i) {
+  ledFlashingFrequency[i] = 0; //Stop any flashing
   digitalWrite(ledPins[i], HIGH);
 }
 void ledOff(int i) {
+  ledFlashingFrequency[i] = 0; //Stop any flashing
   digitalWrite(ledPins[i], LOW);
 }
 
+bool ledFlashing(int i) { //Is the LED i flashing?
+  if (ledFlashingFrequency[i] == 0) return false;
+  else return true; 
+}
+void ledFlash(int i, unsigned int frequency) { //Start this LED flashing - to stop it set it to off or on using other functions. frequency is in Hz
+  ledFlashingFrequency[i] = frequency;
+}
+void loopHandleLedFlashes() { //Called in the loop 
+  int i;
+  for (i = 0; i < ledCount; i = i + 1) {
+    if (ledFlashingFrequency[i] > 0 && (int(((1.0/ledFlashingFrequency[i])*1000)) <= (millis() - ledFlashingLastChangeTime[i]))) {
+      digitalWrite(ledPins[i],  !digitalRead(ledPins[i])); //Take whatever state LED is in rtn and swap it
+      ledFlashingLastChangeTime[i] = millis();
+    }
+  }
+}
 
 //  SETUP
 void setup() {
@@ -146,6 +168,8 @@ void setup() {
   for (i = 0; i < ledCount; i = i + 1) {
     pinMode(ledPins[i], OUTPUT); //Setup the LED and then turn it off
     digitalWrite(ledPins[i], LOW); 
+    ledFlashingFrequency[i] = 0;
+    ledFlashingLastChangeTime[i] = 1;
   }
 
 
@@ -155,8 +179,8 @@ void setup() {
 
 
 void loop() {
-  checkStateOfButtons(); //Check and update the debounce timers for all our buttons
-
+  loopCheckStateOfButtons(); //Check and update the debounce timers for all our buttons
+  loopHandleLedFlashes(); //Flash the LEDs if they need doing
   
   //writeToScreen("Temp: " + (String(htu.readTemperature())), 1);
   //lcd.setCursor(0,1);
