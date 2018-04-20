@@ -4,8 +4,10 @@
 
 //  IMPORTS FOR SCREEN
 #include <LiquidCrystal_I2C.h> //Include the exact library in a zip that's included with this project source
+#include <EEPROM.h>
 
 //  CONFIG
+const String currentVersion = "Version 3.0 Beta";
 //      BUTTONS
 /* Buttons List
  *  0 = Random button 1 - pin 12
@@ -41,10 +43,20 @@ int buttonsLastState[buttonsCount];
 //      LEDs
 unsigned int ledFlashingFrequency[ledCount]; //How many Hz is this LED flashing at? 0 = not flashing
 unsigned long ledFlashingLastChangeTime[ledCount]; //When did this LED last change state?
+//      MENU
+/* LED List
+ *  0 = Menu not open - screen can do as it pleases
+ *  1 = Menu level 1 - "master menu" for selecting mode and settings
+ *  2 = About
+ *  3 = Settings
+ *  4 = Backlight on/off  
+ */
+unsigned int menuMode = 0; //Menu Mode
+unsigned int menuTier = 0; //Menu Sub tier
+
 
 //  FUNCTIONS
 //      BUTTONS
-//      LIGHTS
 //      SCREEN
 bool writeToScreen(String text, int line) {
   if (line == 1) {
@@ -92,19 +104,92 @@ void loopCheckStateOfButtons() {
 }
 // Function called when a button is pressed
 void buttonPressed(int i) {
-  Serial.println(String(i) + " PRESSED");
+  Serial.println(menuMode);
   switch (i) {
-    case 0:
-      ledOn(0);
+    case 1: //Enter
+      if (menuMode == 0) {
+        menuMode = 1;
+        writeToScreen("MENU",1);
+        writeToScreen("Exit Menu",2);
+      } else if (menuMode == 1 && menuTier == 0) {
+        //Exit menu
+        menuMode = 0;
+        writeToScreen("      CueB      ",1);
+        writeToScreen("****************",2);
+      } else if (menuMode == 1 && menuTier == 1) {
+        menuMode = 2;
+        menuTier = 0;
+        //Show about screen
+        writeToScreen("CueB Cue Lights3",1);
+        writeToScreen(currentVersion,2);
+      } else if (menuMode == 1 && menuTier == 2) {
+        menuMode = 3;
+        menuTier = 0;
+        //Show settings menu
+        writeToScreen("MENU -> SETTINGS",1);
+        writeToScreen("Backlight toggle",2);
+      } else if (menuMode == 2) {
+        menuMode = 0;
+        writeToScreen("MENU",1);
+        writeToScreen("Exit Menu",2);
+      } else if (menuMode == 3 && menuTier == 0) {
+        //Show settings menu
+        writeToScreen("Backlight toggle",2);
+        if (EEPROM.read(0) == 0) {
+          lcd.setBacklight(HIGH); 
+          EEPROM.write(0, 1);
+        } else {
+          lcd.setBacklight(LOW); 
+          EEPROM.write(0, 0);
+        }       
+      } else if (menuMode == 3 && menuTier == 1) {
+        menuTier = 1;
+        //Show settings menu
+        writeToScreen("Settings item 2",2);
+      } 
+      break;
+    case 0: //Up
+      if (menuMode == 1) {
+        if (menuTier == 1) {
+          menuTier = 0;
+          writeToScreen("Exit Menu",2);
+        } else if (menuTier == 2) {
+          menuTier = 1;
+          writeToScreen("About",2);
+        } 
+      } else if (menuMode == 3) {
+         if (menuTier == 0) {
+          menuMode = 1;
+          writeToScreen("Exit Menu",2);
+        }  else if (menuTier == 1) {
+          menuTier = 0;
+          writeToScreen("Backlight toggle",2);
+        }        
+      }
+      break;
+   case 2: //Down
+      if (menuMode == 1) {
+        if (menuTier == 0) {
+          menuTier = 1;
+          writeToScreen("About",2);
+        } else if (menuTier == 1) {
+          menuTier = 2;
+          writeToScreen("Settings",2);
+        }
+      } else if (menuMode == 3) {
+         if (menuTier == 0) {
+          menuTier = 1;
+          writeToScreen("Settings item 2",2);
+        }    
+      } 
       break;
   }
 }
 // Function called when a button is released - it's expected this won't normally be used
 void buttonReleased(int i, unsigned long holdTime) { //holdTime is how long the button was held for before being released in Milliseconds
-  Serial.println(String(i) + " RELEASED | Hold time (ms): " + String(holdTime));
-    switch (i) {
-    case 0:
-      ledOff(0);
+  switch (i) {
+    case 1:
+      //TBC
       break;
   }
 }
@@ -134,6 +219,8 @@ void loopHandleLedFlashes() { //Called in the loop
     }
   }
 }
+//      MENU
+
 
 //  SETUP
 void setup() {
@@ -143,11 +230,15 @@ void setup() {
   //    SCREEN
   lcd.begin(16,2);          
   lcd.noAutoscroll();
-  lcd.setBacklight(LOW); 
+  
   lcd.home ();
   lcd.print("JBITHELL LOADING");
   lcd.home ();
-  lcd.setBacklight(HIGH);
+  if (EEPROM.read(0) == 0) {
+    lcd.setBacklight(LOW); 
+  } else {
+    lcd.setBacklight(HIGH);
+  }
   //    TEMPERATURE SENSOR  
   if (!htu.begin()) {
     writeToScreen("Couldn't find sensor!",1);
