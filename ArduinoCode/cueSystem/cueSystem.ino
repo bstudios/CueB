@@ -10,20 +10,44 @@
 const String currentVersion = "Version 3.0 Beta";
 //      BUTTONS
 /* Buttons List
- *  0 = Random button 1 - pin 12
- *  1 = Random button 2 - pin 13
- * 
+ *  0 = UP
+ *  1 = Enter
+ *  2 = Down
+ *      CONTROL PANEL GO/STANDBY BUTTONS - ALL MATCH UP WITH THEIR RESPECTIVE LED NUMBERS FOR EASE OF USE
+ *  3 = 1 Standby
+ *  4 = 1 Go
+ *  5 = 2 Standby
+ *  6 = 2 Go
+ *  7 = 3 Standby
+ *  8 = 3 Go
+ *  9 = 4 Standby
+ *  10 = 4 Go
+ *  11 = Master Go
  */
-const byte buttonsCount = 3; //The number of buttons currently in existence
-const byte buttonsPins[buttonsCount] = {10,11,12}; //The pins of each of the buttons currently in existence
-const int buttonsDownState[buttonsCount] = {LOW,LOW,LOW}; //The state that the button is in when it's down (ie pressed)
+const byte buttonsCount = 12; //The number of buttons currently in existence
+const byte buttonsPins[buttonsCount] = {28,30,29,41,45,53,49,42,46,36,37,35}; //The pins of each of the buttons currently in existence
+const int buttonsDownState[buttonsCount] = {LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW}; //The state that the button is in when it's down (ie pressed)
 //      LEDS
 /* LED List
- *  0 = Random one for fun - pin 13
- * 
+ *  0 = Power indicator
+ *  1 = Green LED indicator
+ *  2 = Blue LED indicator
+ *      CONTROL PANEL GO/STANDBY BUTTONS - ALL MATCH UP WITH THEIR RESPECTIVE LED NUMBERS FOR EASE OF USE
+ *  3 = 1 Standby
+ *  4 = 1 Go
+ *  5 = 2 Standby
+ *  6 = 2 Go
+ *  7 = 3 Standby
+ *  8 = 3 Go
+ *  9 = 4 Standby
+ *  10 = 4 Go
+ *  11 = Master Go
+ *      EXTRA CONTROL PANEL INDICATORS
+ *  12 = 4 - Emergency Stop indicator 
+ *  13 = 4 - Blue Key Switch indicator
  */
-const byte ledCount = 1; //The number of buttons currently in existence
-const byte ledPins[ledCount] = {13}; //The pins of each of the buttons currently in existence
+const byte ledCount = 14; //The number of buttons currently in existence
+const byte ledPins[ledCount] = {32,31,33,43,39,51,47,44,48,38,40,34,52,50}; //The pins of each of the buttons currently in existence
 
 const int ledFrequencyStandby = 5; //Flash frequency for standby light (Hz) - beyond about 40 Hz it stops being obvious it's actually flashing
 const int ledFrequencyCallback = 10; //Flash frequency for callback light on controller (Hz)
@@ -35,7 +59,7 @@ Adafruit_HTU21DF htu = Adafruit_HTU21DF();
 //      SCREEN
 LiquidCrystal_I2C lcd(0x3F, 2, 1, 0, 4, 5, 6, 7, 3, POSITIVE); //Be sure to run this screen at 5V - it's rubbish at 3.3V
 //      BUTTONS
-const unsigned long buttonsDebounceDelay = 50; // How long to do a debounce check for
+const unsigned long buttonsDebounceDelay = 100; // How long to do a debounce check for
 unsigned long buttonsLastDebounceTime[buttonsCount]; //The last time each button was pressed
 unsigned long buttonsHeldTime[buttonsCount]; //How long button has been held for
 int buttonsState[buttonsCount];
@@ -104,7 +128,7 @@ void loopCheckStateOfButtons() {
 }
 // Function called when a button is pressed
 void buttonPressed(int i) {
-  Serial.println(menuMode);
+  Serial.println(i);
   switch (i) {
     case 1: //Enter
       if (menuMode == 0) {
@@ -184,6 +208,14 @@ void buttonPressed(int i) {
       } 
       break;
   }
+
+  if (ledStatus(i)) {
+    ledOff(i);
+  } else {
+    //ledFlash(i, 10);
+    ledOn(i);
+  }
+  
 }
 // Function called when a button is released - it's expected this won't normally be used
 void buttonReleased(int i, unsigned long holdTime) { //holdTime is how long the button was held for before being released in Milliseconds
@@ -202,7 +234,13 @@ void ledOff(int i) {
   ledFlashingFrequency[i] = 0; //Stop any flashing
   digitalWrite(ledPins[i], LOW);
 }
-
+bool ledStatus(int i) {
+  if (digitalRead(ledPins[i]) == HIGH) {
+    return true;
+  } else {
+    return false;
+  }
+}
 bool ledFlashing(int i) { //Is the LED i flashing?
   if (ledFlashingFrequency[i] == 0) return false;
   else return true; 
@@ -222,11 +260,23 @@ void loopHandleLedFlashes() { //Called in the loop
 //      MENU
 
 
+
+boolean arrayIncludeElement(byte array[], int element) {
+for (int i = 0; i < ledCount; i++) {
+      if (array[i] == element) {
+          return true;
+      }
+    }
+ return false;
+}
+
+
 //  SETUP
 void setup() {
   //    SERIAL
   Serial.begin(9600);
   Serial.println("BOOTING");
+  
   //    SCREEN
   lcd.begin(16,2);          
   lcd.noAutoscroll();
@@ -240,10 +290,12 @@ void setup() {
     lcd.setBacklight(HIGH);
   }
   //    TEMPERATURE SENSOR  
+  /*
   if (!htu.begin()) {
     writeToScreen("Couldn't find sensor!",1);
     while (1);
   }
+  */
   //    BUTTONS
   //     Setup each of our buttons
   int i;
@@ -257,22 +309,27 @@ void setup() {
   //    LEDs
 
   for (i = 0; i < ledCount; i = i + 1) {
-    pinMode(ledPins[i], OUTPUT); //Setup the LED and then turn it off
-    digitalWrite(ledPins[i], LOW); 
+    pinMode(ledPins[i], OUTPUT); //Setup the LED and then turn it on to test it
+    digitalWrite(ledPins[i], HIGH); 
     ledFlashingFrequency[i] = 0;
     ledFlashingLastChangeTime[i] = 1;
   }
+  delay(2000);
+  for (i = 0; i < ledCount; i = i + 1) { //Turn all LEDs off
+    digitalWrite(ledPins[i], LOW); 
+  }
 
-
+  
   //    SETUP DONE
   Serial.println("BOOTED");
 }
 
-
 void loop() {
   loopCheckStateOfButtons(); //Check and update the debounce timers for all our buttons
   loopHandleLedFlashes(); //Flash the LEDs if they need doing
-  
+
+
+ 
   //writeToScreen("Temp: " + (String(htu.readTemperature())), 1);
   //lcd.setCursor(0,1);
   //writeToScreen("Humid: " + (String(htu.readHumidity())), 2);
