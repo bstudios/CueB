@@ -7,58 +7,7 @@
 #include <EEPROM.h>
 
 //  CONFIG
-const String currentVersion = "Version 3.0 Beta";
-//      BUTTONS
-/* Buttons List
- *  0 = UP
- *  1 = Enter
- *  2 = Down
- *      CONTROL PANEL GO/STANDBY BUTTONS - ALL MATCH UP WITH THEIR RESPECTIVE LED NUMBERS FOR EASE OF USE
- *  3 = 1 Standby
- *  4 = 1 Go
- *  5 = 2 Standby
- *  6 = 2 Go
- *  7 = 3 Standby
- *  8 = 3 Go
- *  9 = 4 Standby
- *  10 = 4 Go
- *  11 = Master Go
- *      OUTSTATIONS
- *  12 = 1 Acknowledge (ACK)
- *  13 = 2 Acknowledge (ACK)
- */
-const byte buttonsCount = 14; //The number of buttons currently in existence
-const byte buttonsPins[buttonsCount] = {28,30,29,41,45,53,49,42,46,36,37,35,13,11}; //The pins of each of the buttons currently in existence
-const int buttonsDownState[buttonsCount] = {LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW}; //The state that the button is in when it's down (ie pressed)
-//      LEDS
-/* LED List
- *  0 = Power indicator
- *  1 = Green LED indicator
- *  2 = Blue LED indicator
- *      CONTROL PANEL GO/STANDBY BUTTONS - ALL MATCH UP WITH THEIR RESPECTIVE LED NUMBERS FOR EASE OF USE
- *  3 = 1 Standby
- *  4 = 1 Go
- *  5 = 2 Standby
- *  6 = 2 Go
- *  7 = 3 Standby
- *  8 = 3 Go
- *  9 = 4 Standby
- *  10 = 4 Go
- *  11 = Master Go
- *      EXTRA CONTROL PANEL INDICATORS
- *  12 = 4 - Emergency Stop indicator 
- *  13 = 4 - Blue Key Switch indicator
- *      OUTSTATIONS
- *  14 = 1 Standby
- *  15 = 1 Go
- *  16 = 2 Standby
- *  17 = 3 Go
- */
-const byte ledCount = 18; //The number of buttons currently in existence
-const byte ledPins[ledCount] = {32,31,33,43,39,51,47,44,48,38,40,34,52,50,9,10,12,8}; //The pins of each of the buttons currently in existence
-
-const int ledFrequencyStandby = 5; //Flash frequency for standby light (Hz) - beyond about 40 Hz it stops being obvious it's actually flashing
-const int ledFrequencyCallback = 10; //Flash frequency for callback light on controller (Hz)
+#include "config.h"
 
 
 //  SETUP
@@ -88,6 +37,8 @@ unsigned int menuTier = 0; //Menu Sub tier
 
 
 //  FUNCTIONS
+//      GENERAL
+void(* rebootArduino) (void) = 0;  // Reboot arudino https://arduino.stackexchange.com/a/1478
 //      BUTTONS
 //      SCREEN
 bool writeToScreen(String text, int line) {
@@ -136,7 +87,6 @@ void loopCheckStateOfButtons() {
 }
 // Function called when a button is pressed
 void buttonPressed(int i) {
-  Serial.println(i);
   switch (i) {
     case 1: //Enter
       if (menuMode == 0) {
@@ -149,14 +99,14 @@ void buttonPressed(int i) {
         writeToScreen("      CueB      ",1);
         writeToScreen("****************",2);
       } else if (menuMode == 1 && menuTier == 1) {
-        menuMode = 2;
+        menuMode = 0;
         menuTier = 0;
         //Show about screen
         writeToScreen("CueB Cue Lights3",1);
         writeToScreen(currentVersion,2);
       } else if (menuMode == 1 && menuTier == 2) {
         menuMode = 3;
-        menuTier = 0;
+        menuTier = 1;
         //Show settings menu
         writeToScreen("MENU -> SETTINGS",1);
         writeToScreen("Backlight toggle",2);
@@ -164,16 +114,50 @@ void buttonPressed(int i) {
         menuMode = 0;
         writeToScreen("MENU",1);
         writeToScreen("Exit Menu",2);
-      } else if (menuMode == 3 && menuTier == 0) {
+      } else if (menuMode == 3) {
+        if (menuTier == 0) {
+          //Exit menu
+          menuMode = 0;
+          writeToScreen("      CueB      ",1);
+          writeToScreen("****************",2);
+        } else if (menuTier == 1) {
+          if (EEPROM.read(0) == 1) {
+            //When byte 0 = 1 the backlight is OFF (to make on the Default)
+            lcd.setBacklight(HIGH); 
+            EEPROM.write(0, 0);
+          } else {
+            lcd.setBacklight(LOW); 
+            EEPROM.write(0, 1);
+          }
+        }  else if (menuTier == 2) {
+            //Run a full IO test
+            writeToScreen("IO and LEDs TEST",1);
+            writeToScreen(" NO BTN PRESSED ",2);
+            //  Turn on all LEDs
+            for (i = 0; i < ledCount; i = i + 1) {
+                ledOn(i);
+            }
+            delay(1000); //Because otherwise it'll pick up the enter key being pressed to get onto this page
+            //  Show on screen any button that might get pressed
+            while(true) {
+              for (i = 0; i < buttonsCount; i = i + 1) {
+                if (digitalRead(buttonsPins[i]) == buttonsDownState[i]) {
+                  writeToScreen(buttonDetails(i),2);
+                }
+              }
+            }
+            //They need to reboot manually to get out of this facility
+        }  else if (menuTier == 3) {
+          //EPROM clear function https://www.arduino.cc/en/Tutorial/EEPROMClear - clear all the internal storage back to default
+          writeToScreen("      CueB      ",1);
+          writeToScreen(" RESET RUNNING *",2);
+          for (int i = 0 ; i < EEPROM.length() ; i++) {
+            EEPROM.write(i, 0);
+          }
+          rebootArduino();
+        } 
         //Show settings menu
-        writeToScreen("Backlight toggle",2);
-        if (EEPROM.read(0) == 0) {
-          lcd.setBacklight(HIGH); 
-          EEPROM.write(0, 1);
-        } else {
-          lcd.setBacklight(LOW); 
-          EEPROM.write(0, 0);
-        }       
+               
       } else if (menuMode == 3 && menuTier == 1) {
         menuTier = 1;
         //Show settings menu
@@ -190,13 +174,16 @@ void buttonPressed(int i) {
           writeToScreen("About",2);
         } 
       } else if (menuMode == 3) {
-         if (menuTier == 0) {
-          menuMode = 1;
-          writeToScreen("Exit Menu",2);
-        }  else if (menuTier == 1) {
+         if (menuTier == 1) {
           menuTier = 0;
+          writeToScreen("Exit Menu",2);
+        }  else if (menuTier == 2) {
+          menuTier = 1;
           writeToScreen("Backlight toggle",2);
-        }        
+        }   else if (menuTier == 3) {
+          menuTier = 2;
+          writeToScreen("IO & LED Test",2);
+        } 
       }
       break;
    case 2: //Down
@@ -209,21 +196,19 @@ void buttonPressed(int i) {
           writeToScreen("Settings",2);
         }
       } else if (menuMode == 3) {
-         if (menuTier == 0) {
+        if (menuTier == 0) {
           menuTier = 1;
-          writeToScreen("Settings item 2",2);
-        }    
+          writeToScreen("Backlight toggle",2);
+        } else if (menuTier == 1) {
+          menuTier = 2;
+          writeToScreen("IO & LED Test",2);
+        }  else if (menuTier == 2) {
+          menuTier = 3;
+          writeToScreen("Factory Reset",2);
+        }  
       } 
       break;
   }
-
-  if (ledStatus(i)) {
-    ledOff(i);
-  } else {
-    //ledFlash(i, 10);
-    ledOn(i);
-  }
-  
 }
 // Function called when a button is released - it's expected this won't normally be used
 void buttonReleased(int i, unsigned long holdTime) { //holdTime is how long the button was held for before being released in Milliseconds
@@ -292,7 +277,7 @@ void setup() {
   lcd.home ();
   lcd.print("JBITHELL LOADING");
   lcd.home ();
-  if (EEPROM.read(0) == 0) {
+  if (EEPROM.read(0) == 1) {
     lcd.setBacklight(LOW); 
   } else {
     lcd.setBacklight(HIGH);
@@ -321,14 +306,16 @@ void setup() {
     digitalWrite(ledPins[i], HIGH); 
     ledFlashingFrequency[i] = 0;
     ledFlashingLastChangeTime[i] = 1;
-  }
-  delay(2000);
-  for (i = 0; i < ledCount; i = i + 1) { //Turn all LEDs off
-    digitalWrite(ledPins[i], LOW); 
+    delay(bootDelayForLEDFlashTime);
+    digitalWrite(ledPins[i], LOW); //Turn all LEDs off
   }
 
   
   //    SETUP DONE
+  
+  writeToScreen("      CueB      ",1);
+  writeToScreen("****************",2);
+  ledOn(0);
   Serial.println("BOOTED");
 }
 
