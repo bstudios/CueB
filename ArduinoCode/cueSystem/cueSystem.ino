@@ -23,10 +23,13 @@ const String currentVersion = "Version 3.0 Beta";
  *  9 = 4 Standby
  *  10 = 4 Go
  *  11 = Master Go
+ *      OUTSTATIONS
+ *  12 = 1 Acknowledge (ACK)
+ *  13 = 2 Acknowledge (ACK)
  */
-const byte buttonsCount = 12; //The number of buttons currently in existence
-const byte buttonsPins[buttonsCount] = {28,30,29,41,45,53,49,42,46,36,37,35}; //The pins of each of the buttons currently in existence
-const int buttonsDownState[buttonsCount] = {LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW}; //The state that the button is in when it's down (ie pressed)
+const byte buttonsCount = 14; //The number of buttons currently in existence
+const byte buttonsPins[buttonsCount] = {28,30,29,41,45,53,49,42,46,36,37,35,13,11}; //The pins of each of the buttons currently in existence
+const int buttonsDownState[buttonsCount] = {LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW}; //The state that the button is in when it's down (ie pressed)
 //      LEDS
 /* LED List
  *  0 = Power indicator
@@ -45,9 +48,14 @@ const int buttonsDownState[buttonsCount] = {LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,
  *      EXTRA CONTROL PANEL INDICATORS
  *  12 = 4 - Emergency Stop indicator 
  *  13 = 4 - Blue Key Switch indicator
+ *      OUTSTATIONS
+ *  14 = 1 Standby
+ *  15 = 1 Go
+ *  16 = 2 Standby
+ *  17 = 3 Go
  */
-const byte ledCount = 14; //The number of buttons currently in existence
-const byte ledPins[ledCount] = {32,31,33,43,39,51,47,44,48,38,40,34,52,50}; //The pins of each of the buttons currently in existence
+const byte ledCount = 18; //The number of buttons currently in existence
+const byte ledPins[ledCount] = {32,31,33,43,39,51,47,44,48,38,40,34,52,50,9,10,12,8}; //The pins of each of the buttons currently in existence
 
 const int ledFrequencyStandby = 5; //Flash frequency for standby light (Hz) - beyond about 40 Hz it stops being obvious it's actually flashing
 const int ledFrequencyCallback = 10; //Flash frequency for callback light on controller (Hz)
@@ -328,8 +336,6 @@ void loop() {
   loopCheckStateOfButtons(); //Check and update the debounce timers for all our buttons
   loopHandleLedFlashes(); //Flash the LEDs if they need doing
 
-
- 
   //writeToScreen("Temp: " + (String(htu.readTemperature())), 1);
   //lcd.setCursor(0,1);
   //writeToScreen("Humid: " + (String(htu.readHumidity())), 2);
