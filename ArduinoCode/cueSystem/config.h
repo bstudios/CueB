@@ -1,5 +1,5 @@
 //  CONFIG
-const String currentVersion = "Version 3.0 Beta";
+const String currentVersion = "Version 3.2 Beta";
 //      BUTTONS
 //        Full list of buttons mostly for internal purposes - but formatted like this so it can be displayed on LCD. The number is an index of the list of Buttons as defined
 const String buttonDetails(byte buttonID) {
@@ -59,7 +59,7 @@ const int buttonsDownState[buttonsCount] = {LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,
  *  0 = Power indicator
  *  1 = Green LED indicator
  *  2 = Blue LED indicator
- *      CONTROL PANEL GO/STANDBY BUTTONS - ALL MATCH UP WITH THEIR RESPECTIVE LED NUMBERS FOR EASE OF USE
+ *      CONTROL PANEL GO/STANDBY BUTTONS - ALL MATCH UP WITH THEIR RESPECTIVE BUTTON NUMBERS FOR EASE OF USE
  *  3 = 1 Standby
  *  4 = 1 Go
  *  5 = 2 Standby
@@ -79,9 +79,30 @@ const int buttonsDownState[buttonsCount] = {LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,
  *  17 = 3 Go
  */
 const byte ledCount = 18; //The number of buttons currently in existence
-const byte ledPins[ledCount] = {32,31,33,43,39,51,47,44,48,38,40,34,52,50,12,11,9,13}; //The pins of each of the buttons currently in existence
-
-const int ledFrequencyStandby = 5; //Flash frequency for standby light (Hz) - beyond about 40 Hz it stops being obvious it's actually flashing
-const int ledFrequencyCallback = 10; //Flash frequency for callback light on controller (Hz)
-const int bootDelayForLEDFlashTime = 150; //How long to display each LED for in the boot sequence (it flashes each LED in turn for this amount of time
+const byte ledPins[ledCount] = {32,31,33,43,39,51,47,44,48,38,40,34,52,50,12,11,9,13}; //The pins of each of the KEDs currently in existence
+//      CHANNELS
+const unsigned int cueOutstationCount = 4;
+/*
+ * Standby
+ * Go
+ * Acknowledge on outstation
+ * Go on outstation (if fitted) - otherwise 0
+ * LED Standby facepanel
+ * LED Go facepanel
+ * LED Standby defice
+ * LED Go device
+ * 
+ */
+const unsigned int cueOutstationPins0[] = {3,4,12,0,3,4,14,15};
+const unsigned int cueOutstationPins1[] = {5,6,13,0,5,6,16,17};
+const unsigned int cueOutstationPins2[] = {7,8,0,0,7,8,2,2};
+const unsigned int cueOutstationPins3[] = {9,10,0,0,9,10,2,2};
+//      GENERAL
+const int ledFacepanelFrequencyStandby = 5; //Flash frequency for standby light (Hz) - beyond about 40 Hz it stops being obvious it's actually flashing
+const int ledOutstationFrequencyStandby = 5; //Flash frequency for standby light (Hz) - beyond about 40 Hz it stops being obvious it's actually flashing
+const int ledFacepanelFrequencyCallback = 10; //Flash frequency for callback light on controller (Hz)
+const int ledOutstationFrequencyCallback = 10; //Flash frequency for callback light on controller (Hz)
+const int bootDelayForLEDFlashTime = 50; //How long to display each LED for in the boot sequence (it flashes each LED in turn for this amount of time
+const bool callbackOff = false; //TODO move these to a setting in menu
+const bool pushToGoOff = false; //TODO move these to a setting in menu
 
