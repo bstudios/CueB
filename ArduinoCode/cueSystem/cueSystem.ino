@@ -166,7 +166,7 @@ void buttonReleased(int i, unsigned long holdTime) { //holdTime is how long the 
 
   //Switches as part of channel 3 (key switch and EStop)
   if (i == 16) {
-    ledOff(13);
+    ledOn(13);
   } else if (i == 17) {
     ledOff(12);
   }
@@ -336,7 +336,7 @@ void buttonPressed(int i) {
 
   //Switches as part of channel 3 (key switch and EStop)
   if (i == 16) {
-    ledOn(13);
+    ledOff(13);
   } else if (i == 17) {
     ledOn(12);
   }
@@ -531,6 +531,13 @@ void setup() {
   //    Cue system
   for (i = 0; i < cueOutstationCount; i = i + 1) {
     cueChannelState[i] = 0;
+  }
+  //    Facepanel EStop/Lights for channel 3
+  if (digitalRead(buttonsPins[16]) != buttonsDownState[16]) {
+    ledOn(13);
+  }
+  if (digitalRead(buttonsPins[17]) == buttonsDownState[17]) { //If EStop is pressed turn the light on
+    ledOn(12);
   }
 
    
