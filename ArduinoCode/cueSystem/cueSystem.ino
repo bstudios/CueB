@@ -390,10 +390,9 @@ bool channelStandbyButton(int i, unsigned int outstationPins[]) {
     cueChannelState[i] = 1; 
     ledFlash(outstationPins[4], ledFacepanelFrequencyStandby);
     ledFlash(outstationPins[6], ledOutstationFrequencyStandby);
-    if (pushToGoOff) {
-      ledOff(outstationPins[5]);
-      ledOff(outstationPins[7]);
-    }
+    
+    ledOff(outstationPins[5]);
+    ledOff(outstationPins[7]);
   } else if (cueChannelState[i] == 1 or cueChannelState[i] == 2 or cueChannelState[i] == 5) {
     //Turn off standby
     cueChannelState[i] = 0; 
