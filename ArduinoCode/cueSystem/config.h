@@ -121,4 +121,3 @@ const int ledOutstationFrequencyCallback = 10; //Flash frequency for callback li
 const int bootDelayForLEDFlashTime = 50; //How long to display each LED for in the boot sequence (it flashes each LED in turn for this amount of time
 const bool callbackOff = false; //TODO move these to a setting in menu
 const bool pushToGoOff = false; //TODO move these to a setting in menu
-
