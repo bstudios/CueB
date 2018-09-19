@@ -317,7 +317,6 @@ void buttonPressed(int i) {
 
     //Buttons - primary cue logic - channel 2
   if (i == cueOutstationPins2[0]) {
-    Serial.println("SBY");
     channelStandbyButton(2, cueOutstationPins2);
   } else if (i == cueOutstationPins2[2]) {
     channelAckButton(2, cueOutstationPins2);
