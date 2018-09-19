@@ -106,7 +106,7 @@ void buttonReleased(int i, unsigned long holdTime) { //holdTime is how long the 
     //Their system is using push to go so if this is a go button that's illuminated it should be turned off as they release it
     if (i == 11 and (cueChannelState[0] == 4 or cueChannelState[1] == 4 or cueChannelState[2] == 4 or cueChannelState[3] == 4)) {
       //If a master go has been used
-      ledOff(buttonsPins[11]); //Turn off master Go light
+      ledOff(11); //Turn off master Go light
 
       //Turn all the lights off
       cueChannelState[0] = 0;
@@ -356,7 +356,7 @@ void buttonPressed(int i) {
       ledOff(cueOutstationPins2[7]);
       ledOff(cueOutstationPins3[5]);
       ledOff(cueOutstationPins3[7]);
-      ledOff(ledPins[11]);
+      ledOff(11);
     } else {
       //Trigger a master go
             for (int i=0; i <= 3; i++){
@@ -378,7 +378,7 @@ void buttonPressed(int i) {
            ledOff(cueOutstationPins3[6]);
            ledOn(cueOutstationPins3[5]);
            ledOn(cueOutstationPins3[7]);
-           ledOn(ledPins[11]);
+           ledOn(11);
     }
   }
 }
