@@ -49,11 +49,23 @@ const String buttonDetails(byte buttonID) {
      case 13:
          return "Outstation 2 ACK";
         break; 
+     case 14:
+         return "Outstation 3 ACK";
+        break; 
+     case 15:
+         return "Outstation 4 ACK";
+        break; 
+     case 16:
+         return "Outstation 4 Key";
+        break; 
+     case 17:
+         return "Outstation 4Stop";
+        break; 
   }
 }
-const byte buttonsCount = 14; //The number of buttons currently in existence
-const byte buttonsPins[buttonsCount] = {28,30,29,41,45,53,49,42,46,36,37,35,8,10}; //The pins of each of the buttons currently in existence
-const int buttonsDownState[buttonsCount] = {LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW}; //The state that the button is in when it's down (ie pressed)
+const byte buttonsCount = 18; //The number of buttons currently in existence
+const byte buttonsPins[buttonsCount] = {28,30,29,41,45,53,49,42,46,36,37,35,8,10,5,7,15,2}; //The pins of each of the buttons currently in existence
+const int buttonsDownState[buttonsCount] = {LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,HIGH}; //The state that the button is in when it's down (ie pressed)
 //      LEDS
 /* LED List
  *  0 = Power indicator
@@ -76,10 +88,14 @@ const int buttonsDownState[buttonsCount] = {LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,
  *  14 = 1 Standby
  *  15 = 1 Go
  *  16 = 2 Standby
- *  17 = 3 Go
+ *  17 = 2 Go
+ *  18 = 3 Standby
+ *  19 = 3 Go
+ *  20 = 4 Standby
+ *  21 = 4 Go
  */
-const byte ledCount = 18; //The number of buttons currently in existence
-const byte ledPins[ledCount] = {32,31,33,43,39,51,47,44,48,38,40,34,52,50,12,11,9,13}; //The pins of each of the KEDs currently in existence
+const byte ledCount = 22; //The number of buttons currently in existence
+const byte ledPins[ledCount] = {32,31,33,43,39,51,47,44,48,38,40,34,52,50,12,11,9,13,3,6,4,14}; //The pins of each of the KEDs currently in existence
 //      CHANNELS
 const unsigned int cueOutstationCount = 4;
 /*
@@ -95,8 +111,8 @@ const unsigned int cueOutstationCount = 4;
  */
 const unsigned int cueOutstationPins0[] = {3,4,12,0,3,4,14,15};
 const unsigned int cueOutstationPins1[] = {5,6,13,0,5,6,16,17};
-const unsigned int cueOutstationPins2[] = {7,8,0,0,7,8,2,2};
-const unsigned int cueOutstationPins3[] = {9,10,0,0,9,10,2,2};
+const unsigned int cueOutstationPins2[] = {7,8,14,0,7,8,18,19};
+const unsigned int cueOutstationPins3[] = {9,10,15,0,9,10,20,21};
 //      GENERAL
 const int ledFacepanelFrequencyStandby = 5; //Flash frequency for standby light (Hz) - beyond about 40 Hz it stops being obvious it's actually flashing
 const int ledOutstationFrequencyStandby = 5; //Flash frequency for standby light (Hz) - beyond about 40 Hz it stops being obvious it's actually flashing
