@@ -163,6 +163,13 @@ void buttonReleased(int i, unsigned long holdTime) { //holdTime is how long the 
       ledOff(cueOutstationPins3[7]);
     }  
   }
+
+  //Switches as part of channel 3 (key switch and EStop)
+  if (i == 16) {
+    ledOff(13);
+  } else if (i == 17) {
+    ledOff(12);
+  }
 }
 // Function called when a button is pressed
 void buttonPressed(int i) {
@@ -325,6 +332,13 @@ void buttonPressed(int i) {
     channelAckButton(3, cueOutstationPins3);
   } else if (i == cueOutstationPins3[1]) {
     channelGoButton(3, cueOutstationPins3);
+  }
+
+  //Switches as part of channel 3 (key switch and EStop)
+  if (i == 16) {
+    ledOn(13);
+  } else if (i == 17) {
+    ledOn(12);
   }
 
   
