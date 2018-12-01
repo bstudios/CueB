@@ -68,6 +68,12 @@
 | Dates of production | December 2018 |
 | Notes | *Portable design produced for University of York DramaSoc* | 
 
+| Serial Number | Date finished | Remarks |
+|---|---|---|
+| v4.0 #1 | 1 December 2018 | For University of York DramaSoc |
+| v4.0 #2 | 1 December 2018 | For University of York DramaSoc |
+| v4.0 #3 | TBC | For University of York DramaSoc |
+
 ### v5
 
 | | |
@@ -76,3 +82,8 @@
 | Still in production? | On request |
 | Dates of production | December 2018 |
 | Notes | *Fixed design produced for University of York DramaSoc* | 
+
+| Serial Number | Date finished | Remarks |
+|---|---|---|
+| v5.0 #1 | 1 December 2018 | For University of York DramaSoc |
+| v5.0 #2 | 1 December 2018 | For University of York DramaSoc |
