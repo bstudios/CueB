@@ -2,14 +2,14 @@
 ## Controllers
 ### v1.2
 
-![v1.2 Controller][images/v1%20master%20(1).jpg]
+![v1.2 Controller](images/v1%20master%20(2).jpg)
 
-![v1.2 Controller][images/v1%20master%20(1).jpg]
+![v1.2 Controller](images/v1%20master%20(1).jpg)
 
 ### v2
-![v2 Controller][images/v2%20master%20(1).jpg]
+![v2 Controller](images/v2%20master%20(1).jpg)
 
-![v2 Controller][images/v2%20master%20(1).jpg]
+![v2 Controller](images/v2%20master%20(2).jpg)
 ### v3
 ## Outstatations
 ### Table of features
@@ -28,9 +28,9 @@
 | Still in production? | No |
 | Dates of production | January 2018 |
 
-![v1.2][images/v1%20(1).jpg]
+![v1.2](images/v1%20(2).jpg)
 
-![v1.2][images/v1%20(2).jpg]
+![v1.2](images/v1%20(1).jpg)
 
 ### v2
 
@@ -49,9 +49,9 @@
 | Dates of production | July 2018 |
 | Notes | *Modified from timekeeper project, still backwards compatible* |
 
-![v3][images/v3%20(1).jpg]
+![v3](images/v3%20(2).jpg)
 
-![v3][images/v3%20(2).jpg]
+![v3](images/v3%20(1).jpg)
 
 ### v4
 
