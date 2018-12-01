@@ -17,6 +17,18 @@
 
 ![v2 Controller](images/v2%20master%20(2).jpg)
 ### v3
+
+| | |
+|---|---|
+| Number produced | 1 |
+| Still in production? | On request |
+| Dates of production | December 2018 |
+| Notes | *Design produced for University of York DramaSoc* | 
+
+| Serial Number | Date finished | Remarks |
+|---|---|---|
+| v3.0C #1 | 1 December 2018 | For University of York DramaSoc |
+
 ## Outstatations
 ### Table of features
 | Generation | Standby Light | Go Light | 3rd Facepanel light | ACK Button | Go Button | Key Switch | Emergency Stop | 3rd Facepanel Button | Light up GO Button | Light up ACK Button |
