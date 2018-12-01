@@ -1,5 +1,11 @@
 # Devices
 ## Controllers
+### Table of features
+| Generation | Master standby | Master go | LCD | Indicator lights | Cue programming | USB Link |
+| --- | --- | --- | --- | --- | --- | --- |
+| [v1.2](#v1.2) | ✓ | ✓ |  | | | |
+| [v2](#v2) | | ✓ | ✓ | ✓ | | |
+| [v3](#v3) | | | | | | ✓ |
 ### v1.2
 
 ![v1.2 Controller](images/v1%20master%20(2).jpg)
