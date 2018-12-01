@@ -3,7 +3,7 @@
 ### Table of features
 | Generation | Master standby | Master go | LCD | Indicator lights | Cue programming | USB Link |
 | --- | --- | --- | --- | --- | --- | --- |
-| [v1.2](#v1.2) | ✓ | ✓ |  | | | |
+| [v1.2](#v12) | ✓ | ✓ |  | | | |
 | [v2](#v2) | | ✓ | ✓ | ✓ | | |
 | [v3](#v3) | | | | | | ✓ |
 ### v1.2
@@ -21,7 +21,7 @@
 ### Table of features
 | Generation | Standby Light | Go Light | 3rd Facepanel light | ACK Button | Go Button | Key Switch | Emergency Stop | 3rd Facepanel Button | Light up GO Button | Light up ACK Button |
 | --- | --- | --- |--- | --- | --- | --- | --- | --- | --- | --- |
-| [v1.2](#v1.2-1) | ✓ |  ✓ | | ✓ |   |   |  |  | ✓  |  ✓ | 
+| [v1.2](#v12-1) | ✓ |  ✓ | | ✓ |   |   |  |  | ✓  |  ✓ | 
 | [v2](#v2-1) | ✓ |  ✓ | |  ✓ |  ✓ |  |  |  | ✓  | ✓ |  |  ✓ |  ✓ | 
 | [v3](#v3-1) | ✓ |   ✓ |  | ✓ |  | ✓  | ✓ |  |  | ✓ | 
 | [v4](#v4)  | ✓ |  ✓ | ✓ | ✓ |  ✓ |  | |  ✓ |  | | 
