@@ -1,25 +1,14 @@
-# V1 Outstations
+# Wiring Standard
 
-green earth
+Uses B Standard wiring
 
-orange red
-
-orange white green
-
-green white button
-
-
-![image](https://user-images.githubusercontent.com/8408967/40017448-57fdc36c-57b1-11e8-885c-ac5ecb88f9b3.png)
-
-# V3 Outstation (with EStop)
-
-| RJ45 Pin | PhoneCable Colour | GPIO Link Colour | RPi GPIO Pin | RPi Pin | Item |
-| --- | --- | --- | --- | --- | --- |
-| 8 | Orange/White | Grey | 2 | 3 | Green (+ Yellow when key is off) Light |
-| 3 | Orange | Black | Ground | 6 | Earth |
-| 1 | Blue/White | Yellow (red tape) | 3 | 5 | Key Positive |
-| 2 | Green | Blue | 4 | 7 | Emergency Stop |
-| 7 | Green/White | White | 17 | 11 | Red Led |
-| 6 | Blue | Yellow | 27 | 13 | Start Positive |
-| 4 | *Not used* |
-| 5 | *Not used* |
+| RJ45 Pin | RJ45 Colour | Item | Notes | 
+| --- | --- | --- | --- |
+| 1 | Brown | Key switch | | 
+| 2 | Brown/White | Emergency Stop/ 3rd facepanel button | |
+| 3 | Green | __Ground__  | | 
+| 4 | Blue/White | GO Button | |
+| 5 | Blue | 3rd LED | *Often to indicate key swtiched/power on power* | 
+| 6 | Green/White | ACK Button | | 
+| 7 | Orange | Red LED | |
+| 8 | Orange/White | Green LED | *+ Yellow when key is off on certain units* |
