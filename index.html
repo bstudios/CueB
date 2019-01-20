@@ -2,17 +2,18 @@
 <html>
   <head>
     <meta charset="UTF-8">
-    <title>CueLight</title>
+    <title>CueB Start</title>
     <style>
       body {
         font-family: system, -apple-system, '.SFNSText-Regular', 'SF UI Text', 'Lucida Grande', 'Segoe UI', Ubuntu, Cantarell, sans-serif;
         color: #fff;
-        background-color: #8aba87;
+        background-color: #f7b8b3;
         text-align: center;
 
       }
       h1 {
         font-size: 150px;
+        margin-bottom: 0px;
       }
       h2 {
         font-size: 40px;
@@ -33,13 +34,10 @@
       #close {
         color: white;
         opacity: 0.7;
-        position: absolute;
-        bottom: 20px;
-        left: 50%;
-        transform: translateX(-50%);
         font-size: 12px;
         text-decoration: none;
       }
+
 
     </style>
   </head>
@@ -50,14 +48,45 @@
 
     <div id="content">
       <h1>CueB</h1>
-      <!--<p>Chromium <script>document.write(process.versions.chrome)</script><br/>
-      Electron <script>document.write(process.versions.electron)</script><br/>
-      Serialport <script>document.write(require('serialport/package').version)</script>.</p>
-      <br/><br/>-->
-      <h2 style="font-style: italic;">Searching for CueB Device</h2>
+      <a id="offline">Offline Mode</a><br/>
+      <a id="close" href="javascript:window.close()">Close</a>
+      <div style="background-color: #F0F0F0; color: black; width: fit-content; margin:0 auto; border-radius: 5px; padding: 5px;">
+        <table style="text-align: left;" border="0">
+          <tr>
+            <td colspan="2">
+              <i>CueB is a Bithell Studios Project</i>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              Chromium
+            </td>
+            <td>
+              <script>document.write(process.versions.chrome)</script>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              Electron
+            </td>
+            <td>
+              <script>document.write(process.versions.electron)</script>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              Serialport
+            </td>
+            <td>
+              <script>document.write(require('serialport/package').version)</script>
+            </td>
+          </tr>
+          <tr>
+            <td colspan="2"><pre id="loadingDebugStream">Starting client server....</pre></td>
+          </tr>
+        </table>
+      </div>
     </div>
-
-    <a id="close" href="javascript:window.close()">Close</a>
   </body>
 
   <script>

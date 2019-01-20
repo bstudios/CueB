@@ -101,6 +101,9 @@ const String buttonDetails(byte buttonID) {
     case 27:
       return "Outstation 4 Go";
       break;
+    case 28:
+      return "Master Standby";
+      break;
   }
 }
 const String buttonDetailsCoded(byte buttonID) {
@@ -141,6 +144,9 @@ const String buttonDetailsCoded(byte buttonID) {
       break;
     case 11:
       return "0,11";
+      break;
+    case 28:
+      return "0,28";
       break;
     //    OUTSTATIONS
     case 12:
@@ -193,7 +199,7 @@ const String buttonDetailsCoded(byte buttonID) {
       break;
   }
 }
-const byte buttonsCount = 28; //The number of buttons currently in existence
+const byte buttonsCount = 29; //The number of buttons currently in existence
 //      LEDS
 /* LED List
     0 = Power indicator
@@ -231,8 +237,10 @@ const byte buttonsCount = 28; //The number of buttons currently in existence
     29 = 4 Standby
     30 = 4 Go
     31 = 4 Warning
+        OTHER
+    32 = Master Standby
 */
-const byte ledCount = 32; //The number of buttons currently in existence
+const byte ledCount = 33; //The number of buttons currently in existence
 /*  Setup Guide for "cueOutstationPins"
    0 BTN Facepanel Standby
    1 BTN Facepanel Go
@@ -286,7 +294,7 @@ unsigned int cueChannelState[cueOutstationCount];
     5 Standby sent automatically
     7 Auto standby ack
     8 Auto go sent
-    9 ----
+    9 Master standby sent
     10 Callback (panic type thing) sent
     11 ---
 */
@@ -359,7 +367,7 @@ void buttonReleased(int i, unsigned long holdTime) { //holdTime is how long the 
     if (i == 11 and (cueChannelState[0] == 4 or cueChannelState[1] == 4 or cueChannelState[2] == 4 or cueChannelState[3] == 4)) {
       //If a master go has been used
       ledOff(11); //Turn off master Go light
-
+      ledOff(32); //Turn off master standby 
       //Turn all the lights off
       cueChannelState[0] = 0;
       ledOff(cueOutstationPins0[6]);
@@ -578,6 +586,8 @@ void buttonPressed(int i) {
     channelStandbyButton(0, cueOutstationPins0);
   } else if (i == cueOutstationPins0[2]) {
     channelAckButton(0, cueOutstationPins0);
+  } else if (i == cueOutstationPins0[3]) {
+    channelOutstationGoButton(0, cueOutstationPins0);
   } else if (i == cueOutstationPins0[1]) {
     channelGoButton(0, cueOutstationPins0);
   }
@@ -587,6 +597,8 @@ void buttonPressed(int i) {
     channelStandbyButton(1, cueOutstationPins1);
   } else if (i == cueOutstationPins1[2]) {
     channelAckButton(1, cueOutstationPins1);
+  } else if (i == cueOutstationPins1[3]) {
+    channelOutstationGoButton(1, cueOutstationPins1);
   } else if (i == cueOutstationPins1[1]) {
     channelGoButton(1, cueOutstationPins1);
   }
@@ -596,6 +608,8 @@ void buttonPressed(int i) {
     channelStandbyButton(2, cueOutstationPins2);
   } else if (i == cueOutstationPins2[2]) {
     channelAckButton(2, cueOutstationPins2);
+  } else if (i == cueOutstationPins2[3]) {
+    channelOutstationGoButton(2, cueOutstationPins2);
   } else if (i == cueOutstationPins2[1]) {
     channelGoButton(2, cueOutstationPins2);
   }
@@ -605,6 +619,8 @@ void buttonPressed(int i) {
     channelStandbyButton(3, cueOutstationPins3);
   } else if (i == cueOutstationPins3[2]) {
     channelAckButton(3, cueOutstationPins3);
+  } else if (i == cueOutstationPins3[3]) {
+    channelOutstationGoButton(3, cueOutstationPins3);
   } else if (i == cueOutstationPins3[1]) {
     channelGoButton(3, cueOutstationPins3);
   }
@@ -638,7 +654,58 @@ void buttonPressed(int i) {
     ledOff(cueOutstationPins3[9]);
   }
 
-
+  if (i == 28) {
+    //Master standby pressed
+    if (cueChannelState[0] == 9 or cueChannelState[1] == 9 or cueChannelState[2] == 9  or cueChannelState[3] == 9) {
+      //Cancel a master standby
+      for (int i = 0; i <= 3; i++) {
+        cueChannelState[i] = 0;
+      }
+      ledOff(cueOutstationPins0[6]);
+      ledOff(cueOutstationPins0[10]);
+      ledOff(cueOutstationPins1[6]);
+      ledOff(cueOutstationPins1[10]);
+      ledOff(cueOutstationPins2[6]);
+      ledOff(cueOutstationPins2[10]);
+      ledOff(cueOutstationPins3[6]);
+      ledOff(cueOutstationPins3[10]);
+      ledOff(cueOutstationPins0[7]);
+      ledOff(cueOutstationPins0[11]);
+      ledOff(cueOutstationPins1[7]);
+      ledOff(cueOutstationPins1[11]);
+      ledOff(cueOutstationPins2[7]);
+      ledOff(cueOutstationPins2[11]);
+      ledOff(cueOutstationPins3[7]);
+      ledOff(cueOutstationPins3[11]);
+      ledOff(11);
+      ledOff(32);
+    } else {
+      //Trigger a master standby
+      for (int i = 0; i <= 3; i++) {
+        cueChannelState[i] = 9;
+      }
+      ledFlash(cueOutstationPins0[6], ledFacepanelFrequencyStandby);
+      ledFlash(cueOutstationPins0[10], ledOutstationFrequencyStandby);
+      ledOff(cueOutstationPins0[7]);
+      ledOff(cueOutstationPins0[11]);
+      ledFlash(cueOutstationPins1[6], ledFacepanelFrequencyStandby);
+      ledFlash(cueOutstationPins1[10], ledOutstationFrequencyStandby);
+      ledOff(cueOutstationPins1[7]);
+      ledOff(cueOutstationPins1[11]);
+      ledFlash(cueOutstationPins2[6], ledFacepanelFrequencyStandby);
+      ledFlash(cueOutstationPins2[10], ledOutstationFrequencyStandby);
+      ledOff(cueOutstationPins2[7]);
+      ledOff(cueOutstationPins2[11]);
+      ledFlash(cueOutstationPins3[6], ledFacepanelFrequencyStandby);
+      ledFlash(cueOutstationPins3[10], ledOutstationFrequencyStandby);
+      ledOff(cueOutstationPins3[7]);
+      ledOff(cueOutstationPins3[11]);
+      
+      ledOff(11); //Master go light
+      ledFlash(32, ledFacepanelFrequencyStandby);
+      
+    }
+  }
   if (i == 11) {
     //Master go pressed
     if (pushToGoOff and (cueChannelState[0] == 4 or cueChannelState[1] == 4 or cueChannelState[2] == 4  or cueChannelState[3] == 4)) {
@@ -655,6 +722,7 @@ void buttonPressed(int i) {
       ledOff(cueOutstationPins3[7]);
       ledOff(cueOutstationPins3[11]);
       ledOff(11);
+      ledOff(32);
     } else {
       //Trigger a master go
       for (int i = 0; i <= 3; i++) {
@@ -677,6 +745,7 @@ void buttonPressed(int i) {
       ledOn(cueOutstationPins3[7]);
       ledOn(cueOutstationPins3[11]);
       ledOn(11); //Master go light
+      ledOff(32);
     }
   }
 }
@@ -690,11 +759,12 @@ bool channelStandbyButton(int i, unsigned int outstationPins[]) {
 
     ledOff(outstationPins[7]);
     ledOff(outstationPins[11]);
-  } else if (cueChannelState[i] == 1 or cueChannelState[i] == 2 or cueChannelState[i] == 5) {
+  } else if (cueChannelState[i] == 1 or cueChannelState[i] == 2 or cueChannelState[i] == 5 or cueChannelState[i] == 9) {
     //Turn off standby
     cueChannelState[i] = 0;
     ledOff(outstationPins[6]);
     ledOff(outstationPins[10]);
+    ledOff(32);
   } else if (cueChannelState[i] == 10 and callbackOff != true) {
     //Acknowledge a callback
     cueChannelState[i] = 0;
@@ -703,8 +773,8 @@ bool channelStandbyButton(int i, unsigned int outstationPins[]) {
   }
 }
 bool channelAckButton(int i, unsigned int outstationPins[]) {
-  if (cueChannelState[i] == 1) {
-    //Ack a go
+  if (cueChannelState[i] == 1 or cueChannelState[i] == 9) {
+    //Ack a standby
     cueChannelState[i] = 2;
     ledOn(outstationPins[6]);
     ledOn(outstationPins[10]);
@@ -715,15 +785,26 @@ bool channelAckButton(int i, unsigned int outstationPins[]) {
     ledFlash(outstationPins[10], ledOutstationFrequencyCallback);
   }
 }
+bool channelOutstationGoButton(int i, unsigned int outstationPins[]) {
+  if (cueChannelState[i] == 1 or cueChannelState[i] == 9) {
+    channelAckButton(i, outstationPins);
+  } else if (callbackOff != true and cueChannelState[i] == 10) {
+    //Cancel a callback
+    cueChannelState[i] = 0;
+    ledOff(outstationPins[6]);
+    ledOff(outstationPins[10]);
+  }
+}
 bool channelGoButton(int i, unsigned int outstationPins[]) {
   //
-  if (cueChannelState[i] == 0 or cueChannelState[i] == 1 or cueChannelState[i] == 2 or cueChannelState[i] == 5 or cueChannelState[i] == 7 or cueChannelState[i] == 10) {
+  if (cueChannelState[i] == 0 or cueChannelState[i] == 1 or cueChannelState[i] == 2 or cueChannelState[i] == 5 or cueChannelState[i] == 7 or cueChannelState[i] == 10 or cueChannelState[i] == 9) {
     //Send a GO command
     cueChannelState[i] = 3;
     ledOff(outstationPins[6]);
     ledOff(outstationPins[10]);
     ledOn(outstationPins[7]);
     ledOn(outstationPins[11]);
+    ledOff(32);
   } else if ((cueChannelState[i] == 3 or cueChannelState[i] == 4 or cueChannelState[i] == 8) and pushToGoOff) {
     //Cancel a go
     cueChannelState[i] = 0;
@@ -735,18 +816,19 @@ bool channelGoButton(int i, unsigned int outstationPins[]) {
 
 //      LEDs
 void ledOn(int i) {
-  if (ledPins[i] == 255) { //Not fitted to this device
-    return;
-  }
   ledFlashingFrequency[i] = 0; //Stop any flashing
-  digitalWrite(ledPins[i], HIGH);
+  Serial.println(String("LEDStatus,")+i+","+"1");
+  if (ledPins[i] != 255) { //Not fitted to this device
+    digitalWrite(ledPins[i], HIGH);
+  }
+  
 }
 void ledOff(int i) {
-  if (ledPins[i] == 255) { //Not fitted to this device
-    return;
-  }
   ledFlashingFrequency[i] = 0; //Stop any flashing
-  digitalWrite(ledPins[i], LOW);
+  Serial.println(String("LEDStatus,")+i+","+"0");
+  if (ledPins[i] != 255) { //Not fitted to this device
+    digitalWrite(ledPins[i], LOW);
+  }  
 }
 bool ledStatus(int i) {
   if (ledPins[i] == 255) { //Not fitted to this device
@@ -763,12 +845,15 @@ bool ledFlashing(int i) { //Is the LED i flashing?
 }
 void ledFlash(int i, unsigned int frequency) { //Start this LED flashing - to stop it set it to off or on using other functions. frequency is in Hz
   ledFlashingFrequency[i] = frequency;
+  Serial.println(String("LEDStatus,")+i+","+frequency);
 }
 void loopHandleLedFlashes() { //Called in the loop
   int i;
   for (i = 0; i < ledCount; i = i + 1) {
     if (ledFlashingFrequency[i] > 0 && (int(((1.0 / ledFlashingFrequency[i]) * 1000)) <= (millis() - ledFlashingLastChangeTime[i]))) {
-      digitalWrite(ledPins[i],  !digitalRead(ledPins[i])); //Take whatever state LED is in rtn and swap it
+      if (ledPins[i] != 255) { //Not fitted to this device
+        digitalWrite(ledPins[i],  !digitalRead(ledPins[i])); //Take whatever state LED is in rtn and swap it
+      } 
       ledFlashingLastChangeTime[i] = millis();
     }
   }
@@ -834,7 +919,7 @@ void handleSerialMessage(String messageString) {
   } else if (firstValue == "LEDFlash") {
     /*
      * LED COMMAND
-     * LED,[Frequency],[LED Number],[LED Channel if it's an outstation]
+     * LEDFlash,[Frequency],[LED Number],[LED Channel if it's an outstation]
      * 
      */
     int ledFrequency = secondValue.toInt();
@@ -855,8 +940,7 @@ void handleSerialMessage(String messageString) {
         
   } else if (firstValue == "BTNStatus") {
     /*
-     * LED COMMAND
-     * LED,[Frequency],[LED Number],[LED Channel if it's an outstation]
+     * 
      * 
      */
     int ledFrequency = secondValue.toInt();
@@ -875,6 +959,12 @@ void handleSerialMessage(String messageString) {
     }
     ledFlash(ledNumber,ledFrequency);
         
+  } else if (firstValue == "BTNClick") {
+    int pinNumber = secondValue.toInt();
+    buttonPressed(pinNumber);
+  } else if (firstValue == "BTNUnClick") {
+    int pinNumber = secondValue.toInt();
+    buttonReleased(pinNumber,0);
   } else {
     Serial.println(firstValue);
     Serial.println(secondValue);
@@ -929,10 +1019,10 @@ void setup() {
   for (i = 0; i < ledCount; i = i + 1) {
     if (ledPins[i] != 255) {
       pinMode(ledPins[i], OUTPUT); //Setup the LED and then turn it on to test it
-      digitalWrite(ledPins[i], HIGH);
+      //digitalWrite(ledPins[i], HIGH);
       ledFlashingFrequency[i] = 0;
       ledFlashingLastChangeTime[i] = 1;
-      delay(bootDelayForLEDFlashTime);
+      //delay(bootDelayForLEDFlashTime);
       digitalWrite(ledPins[i], LOW); //Turn all LEDs off
     }
   }

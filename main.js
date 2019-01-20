@@ -1,11 +1,97 @@
 const electron = require('electron')
+const {Menu} = require('electron')
+const {dialog} = require('electron')
 // Module to control application life.
 const app = electron.app
 // Module to create native browser window.
 const BrowserWindow = electron.BrowserWindow
 
+const persistentSettings = require('electron-settings');
+
+var debugShow = false;
+
 const path = require('path')
 const url = require('url')
+
+const template = [
+    {
+        label: 'File',
+        submenu: [
+            {
+                label: 'New',
+                click () {
+                    mainWindow.webContents.send('newFile');
+                }
+            },
+            { type: 'separator' },
+            {
+                label: 'Open',
+                click () {
+                    dialog.showOpenDialog(
+                        {
+                            title:"Choose a Show File",
+                            properties: [ 'openFile' ], filters: [{ name: 'CueB ShowFile', extensions: ['cuebsf'] }]
+                        }, function (filePaths) {
+                            if (filePaths) {
+                                mainWindow.webContents.send('fileOpen',filePaths);
+                            }
+                        }
+                        );
+                }
+            },
+            {
+                label: 'Save',
+                click () {
+                    dialog.showSaveDialog(
+                        {
+                            title:"Choose where to save your Show File",
+                           filters: [{ name: 'CueB ShowFile', extensions: ['cuebsf'] }]
+                        }, function (filename) {
+                            if (filename) {
+                                mainWindow.webContents.send('fileSave',filename);
+                            }
+                        }
+                    );
+                }
+            }
+        ]
+    },
+    {
+        role: 'help',
+        submenu: [
+            {
+                label: 'About',
+                role: 'about',
+                click () {
+                    dialog.showMessageBox(
+                        {
+                            "type":"info",
+                            "buttons": [],
+                            "title":"CueB Controller Software",
+                            "message":"©2018-2019 James Bithell",
+                            "detail":"A Bithell Studios Project.\nVersion " + app.getVersion() + "\n\n Contact hi@jbithell.com for support",
+                        });
+                }
+            }
+        ]
+    }
+]
+
+if (process.platform === 'darwin') {
+    template.unshift({
+        label: app.getName(),
+        submenu: [
+            { role: 'hide' },
+            { role: 'hideothers' },
+            { role: 'unhide' },
+            { type: 'separator' },
+            { role: 'quit' }
+        ]
+    })
+}
+
+const menu = Menu.buildFromTemplate(template)
+Menu.setApplicationMenu(menu)
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -18,7 +104,13 @@ global.comPort = comPort;
 global.createWindow = function(comPortVar) {
     // Create the browser window.
     global.comPort = comPortVar;
-    mainWindow = new BrowserWindow({width: 1200, height: 600})
+
+    mainWindow = new BrowserWindow({
+        width: 600, height: 400, minHeight: 400, minWidth: 600,
+        resizable: debugShow,
+        title: "CueB",
+        icon: path.join(__dirname, 'assets/icon/scaled/64x64.png')
+    });
 
     // and load the index.html of the app.
     mainWindow.loadURL(url.format({
@@ -27,12 +119,14 @@ global.createWindow = function(comPortVar) {
         slashes: true
     }));
 
-    mainWindow.maximize();
+    //mainWindow.maximize();
     mainWindow.focus();
     mainStartWindow.destroy(); //Close the other window
 
 	  // Open the DevTools.
-	  mainWindow.webContents.openDevTools()
+    if (debugShow) {
+        mainWindow.webContents.openDevTools()
+    }
     // Emitted when the window is closed.
     mainWindow.on('closed', function () {
         // Dereference the window object, usually you would store windows
@@ -45,13 +139,16 @@ global.createWindow = function(comPortVar) {
 function createStartWindow () {
   // Create the browser window.
   mainStartWindow = new BrowserWindow({width: 800, height: 600, frame: false})
-
+  mainStartWindow.setMenu(null);
   // and load the index.html of the app.
   mainStartWindow.loadURL(url.format({
     pathname: path.join(__dirname, 'index.html'),
     protocol: 'file:',
     slashes: true
-  }))
+  }));
+  if (debugShow) {
+      mainStartWindow.webContents.openDevTools();
+  }
 
   // Emitted when the window is closed.
   mainStartWindow.on('closed', function () {
