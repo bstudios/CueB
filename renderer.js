@@ -15,10 +15,19 @@ SerialPort.list((err, ports) => {
       $.each(ports, function( index, value ) {
           //Find an arduino uno
           $('#loadingDebugStream').html($('#loadingDebugStream').html() + "\nFound " + value["comName"]);
-          value["portobject"] = new SerialPort(value["comName"], {
-              baudRate: 115200,
-              autoOpen:true
-          });
+          try {
+              value["portobject"] = new SerialPort(value["comName"], {
+                  baudRate: 115200,
+                  autoOpen:true
+              });
+          }
+          catch(err) {
+              value["portobject"] = false;
+              console.log(err);
+              return true; //Continue statement essentially
+          }
+
+
           const parser = value["portobject"].pipe(new Readline({ delimiter: '\n', encoding:"utf8" }))
 
           value["initialdatasent"] = "";
@@ -28,14 +37,16 @@ SerialPort.list((err, ports) => {
                   $('#loadingDebugStream').html($('#loadingDebugStream').html() + "\nCueB device found at " + value["comName"]);
                   $.each(ports, function( newloopindex, newloopvalue ) {
                       //Find an arduino uno
-                      newloopvalue["portobject"].close(function(data) {
-                          if (newloopvalue["comName"] == value["comName"]) {
-                              $('#loadingDebugStream').html($('#loadingDebugStream').html() + "\nConnected to  " + value["comName"]);
-                              comPort = value["comName"]; //If we've closed the port we're looking for open it up again with a nice new connection
-                              global.comPort = comPort;
-                              createWindow(comPort);
-                          }
-                      });
+                      if (newloopvalue["portobject"]) {
+                          newloopvalue["portobject"].close(function (data) {
+                              if (newloopvalue["comName"] == value["comName"]) {
+                                  $('#loadingDebugStream').html($('#loadingDebugStream').html() + "\nConnected to  " + value["comName"]);
+                                  comPort = value["comName"]; //If we've closed the port we're looking for open it up again with a nice new connection
+                                  global.comPort = comPort;
+                                  createWindow(comPort);
+                              }
+                          });
+                      }
                   });
               } else {
                   $('#loadingDebugStream').html($('#loadingDebugStream').html() + "\nNo CueB device found at " + value["comName"]);

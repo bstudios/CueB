@@ -91,7 +91,7 @@ if (process.platform === 'darwin') {
 }
 
 const menu = Menu.buildFromTemplate(template)
-Menu.setApplicationMenu(menu)
+
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -104,13 +104,14 @@ global.comPort = comPort;
 global.createWindow = function(comPortVar) {
     // Create the browser window.
     global.comPort = comPortVar;
-
     mainWindow = new BrowserWindow({
         width: 600, height: 400, minHeight: 400, minWidth: 600,
         resizable: debugShow,
         title: "CueB",
         icon: path.join(__dirname, 'assets/icon/scaled/64x64.png')
     });
+    Menu.setApplicationMenu(menu)
+
 
     // and load the index.html of the app.
     mainWindow.loadURL(url.format({
