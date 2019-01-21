@@ -162,9 +162,9 @@ $(document).ready(function () {
                                     }
                                 } else if (outputArray[2] == 5) { //Btn3
                                     if (outputArray[3] == 1) {
-                                        $('.thirdButton[data-channel="' + outputArray[1] + '"]').show(); //Lock icon
-                                    } else {
                                         $('.thirdButton[data-channel="' + outputArray[1] + '"]').hide(); //Lock icon
+                                    } else {
+                                        $('.thirdButton[data-channel="' + outputArray[1] + '"]').show(); //Lock icon
                                     }
                                 }
                             }
