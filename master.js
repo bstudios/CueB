@@ -132,6 +132,7 @@ $(document).ready(function () {
             });
         }
         function recieveMessageOSC(output) {
+            console.log(output);
             switch (output) {
                 case "CUEBOK":
                     lastHeardFromDevice = Date.now();
@@ -269,6 +270,7 @@ $(document).ready(function () {
         }
         function sendMessageOSC(message) {
             if (online) {
+                console.log(message);
                 portConnection.write(message + "\n");
             }
         }
