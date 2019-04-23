@@ -5,10 +5,12 @@
 | Generation | Master standby | Master go | LCD | Indicator lights | Cue programming | USB Link |
 | --- | --- | --- | --- | --- | --- | --- |
 | [v1.2](#v12) | ✓ | ✓ |  |  |  |  |
-| [v2](#v2) |  | ✓ | ✓ | ✓ |  |  |
+| [v2](#v2) |  | ✓ | ✓ | ✓ |  | ✓ |
 | [v3](#v3) |  |  |  |  |  | ✓ |
 
 ### v1.2
+
+*Built January 2018 for Westminster School Production of Cabaret*
 
 ![v1.2 Controller](images/v1%20master%20(2).jpg)
 
@@ -16,6 +18,7 @@
 
 ### v2
 
+*Built June-September 2019 as prototype*
 ![v2 Controller](images/v2%20master%20(1).jpg)
 
 ![v2 Controller](images/v2%20master%20(2).jpg)
@@ -53,7 +56,7 @@
 | Number produced | 2 |
 | Still in production? | No |
 | Dates of production | January 2018 |
-
+| Notes | *designed and used for Westminster School's production of Cabaret February 2018* |
 ![v1.2](images/v1%20(2).jpg)
 
 ![v1.2](images/v1%20(1).jpg)
@@ -110,3 +113,7 @@
 |---|---|---|
 | v5.0 #1 | 1 December 2018 | For University of York DramaSoc |
 | v5.0 #2 | 1 December 2018 | For University of York DramaSoc |
+
+![v5](images/v5%20(2).jpg)
+
+![v5](images/v5%20(1).jpg)
