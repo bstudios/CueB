@@ -95,7 +95,7 @@
 | v4.0 #2 | 1 December 2018 | For University of York DramaSoc |
 | v4.0 #3 | TBC | For University of York DramaSoc |
 
-![v4](images/v4.jpg)
+![v4](images/v4.png)
 
 ### v5
 
