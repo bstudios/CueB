@@ -56,7 +56,8 @@
 | Number produced | 2 |
 | Still in production? | No |
 | Dates of production | January 2018 |
-| Notes | *designed and used for Westminster School's production of Cabaret February 2018* |
+| Notes | Designed and used for Westminster School's production of Cabaret February 2018 |
+
 ![v1.2](images/v1%20(2).jpg)
 
 ![v1.2](images/v1%20(1).jpg)
@@ -96,7 +97,7 @@
 |---|---|---|
 | v4.0 #1 | 1 December 2018 | For University of York DramaSoc |
 | v4.0 #2 | 1 December 2018 | For University of York DramaSoc |
-| v4.0 #3 | TBC | For University of York DramaSoc |
+| v4.0 #3 | TBC |  |
 
 ![v4](images/v4.png)
 
