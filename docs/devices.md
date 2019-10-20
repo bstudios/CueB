@@ -97,7 +97,8 @@
 |---|---|---|
 | v4.0 #1 | 1 December 2018 | For University of York DramaSoc |
 | v4.0 #2 | 1 December 2018 | For University of York DramaSoc |
-| v4.0 #3 | TBC |  |
+| v4.0 #3 | January 2019 |  |
+| v4.0 #4 | October 2019 |  |
 
 ![v4](images/v4.png)
 
@@ -118,3 +119,18 @@
 ![v5](images/v5%20(2).jpg)
 
 ![v5](images/v5%20(1).jpg)
+
+### v6
+
+| | |
+|---|---|
+| Number produced | 1 |
+| Still in production? | On request |
+| Dates of production | October 2019 |
+| Notes | *Twin port combined for operating QLab/Multiplay from same panel* | 
+
+| Serial Number | Date finished | Remarks |
+|---|---|---|
+| v6.0 #1 | October 2019 |  |
+
+![v4](images/v6.png)
