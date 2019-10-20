@@ -133,4 +133,7 @@
 |---|---|---|
 | v6.0 #1 | October 2019 |  |
 
-![v4](images/v6.png)
+
+![v6](images/v6%20(2).jpg)
+
+![v6](images/v6%20(1).jpg)
