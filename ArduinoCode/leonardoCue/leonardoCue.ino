@@ -1,6 +1,6 @@
 #include <Keyboard.h>
 
-const unsigned int pins[] = {12,7,10,9,13,8,11};
+const unsigned int pins[] = {12,7,10,9,13,8,11,4};
 int buttonsUpState[4];    
 int buttonsLastState[4];
 unsigned long buttonsLastDebounceTime[4]; //The last time each button was pressed
@@ -16,41 +16,52 @@ const unsigned long buttonsDebounceDelay = 200; // How long to do a debounce che
  * 4  Green LED
  * 5  Red LED
  * 6  3rd LED
- * 
+ * 7  Case LED
  */
 
 void buttonPressed(int i) {
+  digitalWrite(pins[7], LOW);
   switch (i) {
     case 0: //Go button
       //Send space key
       Keyboard.press(32);
+      digitalWrite(pins[4], HIGH);
       delay(30);
       Keyboard.release(32);
+      digitalWrite(pins[4], LOW);
       break;
     case 1: //ACK Button
       //Send escape key
+      digitalWrite(pins[5], HIGH);
       Keyboard.press(177);             
       delay(30);                 
       Keyboard.release(177);
+      digitalWrite(pins[5], LOW);
       break;
-    case 2: //Key switch
-      //Do nothing
+    case 2: //Key switch - up arrow
+      Keyboard.press(218);
+      digitalWrite(pins[6], LOW);
+      delay(10);
+      Keyboard.release(218);
+      digitalWrite(pins[6], HIGH);
       break;
-    case 3: //3rd button
-      //Do nothing
-      Keyboard.press(33);
-      delay(30);
-      Keyboard.release(33);
+    case 3: //3rd button - down arrow
+      Keyboard.press(217);
+      
+      digitalWrite(pins[6], LOW);
+      delay(10);
+      Keyboard.release(217);
+      digitalWrite(pins[6], HIGH);
       break;
   }
 }
 void buttonReleased(int i, unsigned long holdTime) { //holdTime is how long the button was held for before being released in Milliseconds
-
+  digitalWrite(pins[7], HIGH);
 }
 void setup() {
   Keyboard.begin();
   int i;
-  for (i = 0; i < 3; i = i + 1) {
+  for (i = 0; i < 4; i = i + 1) {
     pinMode(pins[i], INPUT_PULLUP);
     buttonsUpState[i] = digitalRead(pins[i]);
     buttonsLastState[i] = digitalRead(pins[i]);
@@ -62,14 +73,14 @@ void setup() {
   pinMode(pins[4], OUTPUT);
   pinMode(pins[5], OUTPUT);
   pinMode(pins[6], OUTPUT);
+  pinMode(pins[7], OUTPUT);
   digitalWrite(pins[4], HIGH);
   digitalWrite(pins[5], HIGH);
   digitalWrite(pins[6], HIGH);
-  
+  digitalWrite(pins[7], HIGH);
   delay(100);
   digitalWrite(pins[4], LOW);
   digitalWrite(pins[5], LOW);
-  digitalWrite(pins[6], LOW);
 }
 
 void loop() {
