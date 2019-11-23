@@ -6,7 +6,7 @@ int buttonsLastState[4];
 unsigned long buttonsLastDebounceTime[4]; //The last time each button was pressed
 unsigned long buttonsHeldTime[4]; //How long button has been held for
 int buttonsState[4];
-const unsigned long buttonsDebounceDelay = 20; // How long to do a debounce check for
+const unsigned long buttonsDebounceDelay = 200; // How long to do a debounce check for
 /*
  * 0  Go Button
  * 1  ACK Button
@@ -75,15 +75,8 @@ void setup() {
 void loop() {
   //Buttons 
   int i;
-  for (i = 0; i < 3; i = i + 1) {
-    //Handle the debouncing stuff for that button
-    if (digitalRead(pins[i]) != buttonsLastState[i]) {
-      buttonsLastDebounceTime[i] = millis(); // reset the debouncing timer for that particular button
-      buttonsLastState[i] = digitalRead(pins[i]);
-    }
-
-    //Handle if it's actually been pressed for that button
-    if ((millis() - buttonsLastDebounceTime[i]) > buttonsDebounceDelay && digitalRead(pins[i]) != buttonsState[i]) {
+  for (i = 0; i < 4; i = i + 1) {
+    if (digitalRead(pins[i]) != buttonsState[i] && (millis() - buttonsLastDebounceTime[i]) > buttonsDebounceDelay) { //Button has changed
       if (digitalRead(pins[i]) != buttonsUpState[i]) {
         buttonPressed(i); //Call a function if it's been pressed
         buttonsHeldTime[i] = millis(); //Track when it was pressed - so we can give an indication to the release function of how long it was held for
@@ -91,6 +84,7 @@ void loop() {
         buttonReleased(i, (millis() - buttonsHeldTime[i])); //Call a function if it's been released
       }
       buttonsState[i] = digitalRead(pins[i]);
+      buttonsLastDebounceTime[i] = millis(); // reset the debouncing timer for that particular button
     }
   }
 }
