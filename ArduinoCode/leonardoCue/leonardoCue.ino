@@ -20,7 +20,7 @@ const unsigned long buttonsDebounceDelay = 200; // How long to do a debounce che
  */
 
 void buttonPressed(int i) {
-  digitalWrite(pins[7], LOW);
+  //digitalWrite(pins[7], LOW);
   switch (i) {
     case 0: //Go button
       //Send space key
@@ -56,7 +56,7 @@ void buttonPressed(int i) {
   }
 }
 void buttonReleased(int i, unsigned long holdTime) { //holdTime is how long the button was held for before being released in Milliseconds
-  digitalWrite(pins[7], HIGH);
+  //digitalWrite(pins[7], HIGH);
 }
 void setup() {
   Keyboard.begin();
