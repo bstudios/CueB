@@ -2,9 +2,7 @@ const SerialPort = require('serialport');
 const Readline = require('@serialport/parser-readline');
 const { ipcRenderer } = require('electron');
 window.$ = window.jQuery = require('jquery');
-//Pusher
-const Pusher = require('pusher');
-const uuidv4 = require('uuid/v4');
+
 //      Serial
 const remote = require('electron').remote;
 var comPort = remote.getGlobal("comPort");
@@ -24,6 +22,7 @@ function setOpacity(e, alpha) { //e = jQuery element, alpha = background-opacity
     b = e.css('backgroundColor');
     e.css('backgroundColor', 'rgba' + b.slice(b.indexOf('('), ( (b.match(/,/g).length == 2) ? -1 : b.lastIndexOf(',') - b.length) ) + ', '+alpha+')');
 }
+
 //      SHOWFILE
 var path = require("path");
 var defaultShowFile = {
@@ -77,7 +76,6 @@ function renderShowFile() {
         });
 
     }
-    startPusher();
     console.log(thisShowFile);
 }
 
@@ -108,43 +106,9 @@ ipcRenderer.on('fileSave', function(evt, msg) {
 });
 ipcRenderer.on('newFile', function(evt, msg) {
     thisShowFile = defaultShowFile; //Reset to the default basically
-    startPusher();
     renderShowFile();
 });
-//      LIVE ELEMENT
-var debuggingData = [];
-var pusher;
-var pusherLive = true;
-var uniqueDeviceId = uuidv4();
-function startPusher() {
-    if (thisShowFile.pusher.appId) {
-        pusher = new Pusher({
-            appId: thisShowFile.pusher.appId,
-            key: thisShowFile.pusher.key,
-            secret: thisShowFile.pusher.secret,
-            useTLS: true,
-            cluster: "eu"
-        });
-        pusher.trigger("cueb-events","cueb-channelConfig",{channelConfig: thisShowFile.channelConfig, device: thisShowFile.deviceName + " " + uniqueDeviceId});
-    }
-}
-if (thisShowFile.pusher.appId != false) {
-    startPusher();
-}
-function sendDebuggingRequest(inputData, type) {
-    if (thisShowFile.pusher.appId != false) {
-        if (pusherLive) {
-            pusher.trigger("cueb-events","cueb-" + type,{payload: inputData, device: thisShowFile.deviceName + " " + uniqueDeviceId});
-        } else {
-            debuggingData.push({channel: "cueb-events", "name": "cueb-" + type, data: {payload: inputData, time:Date.now(), device: thisShowFile.deviceName + " " + uniqueDeviceId}});
 
-            if (debuggingData.length == 10) {
-                pusher.triggerBatch(debuggingData);
-                debuggingData = [];
-            }
-        }
-    }
-}
 
 $(document).ready(function () {
     if (comPort) {
@@ -187,7 +151,6 @@ $(document).ready(function () {
                     break;
                 default:
                     var outputArray = output.split(",");
-                    sendDebuggingRequest(output, "fromdevice");
                     switch (outputArray[0]) {
                         /*
                         0 = Command
@@ -315,7 +278,6 @@ $(document).ready(function () {
             if (online) {
                 console.log(message);
                 portConnection.write(message + "\n");
-                sendDebuggingRequest(message, "fromcontrol");
             }
         }
         window.setInterval(function(){
@@ -359,7 +321,6 @@ $(document).ready(function () {
                      setOpacity($(".selector[data-channel=" + $(this).data("channel") + "]"), 1);
                  }
              }
-
         });
         $("td[data-channel]").mouseup(function () {
             if ($(this).data("buttonpin")) {
@@ -373,10 +334,7 @@ $(document).ready(function () {
                     setOpacity($(".selector[data-channel=master]"), 0.4);
                 }
             }
-
-
         });
-
 
         openConnection(); //Actually open the connection to the arduino
     } else {
