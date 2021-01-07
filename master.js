@@ -109,6 +109,21 @@ ipcRenderer.on('newFile', function(evt, msg) {
     renderShowFile();
 });
 
+/** Socket.io setup
+ * This implementation uses a http webserver to serve a 'remote' page
+ */
+const remoteContent = require('fs').readFileSync(__dirname + '/remote.html', 'utf8');
+const httpServer = require('http').createServer((req, res) => {
+    // serve the remote.html file
+    res.setHeader('Content-Type', 'text/html');
+    res.setHeader('Content-Length', Buffer.byteLength(remoteContent));
+    res.end(remoteContent);
+});
+const io = require('socket.io')(httpServer);
+
+httpServer.listen(3000, () => {
+    console.log('go to http://localhost:3000');
+});
 
 $(document).ready(function () {
     if (comPort) {
@@ -138,7 +153,7 @@ $(document).ready(function () {
             });
         }
         function recieveMessageOSC(output) {
-            console.log(output);
+            io.emit("OSCMessages", output);// Broadcast all received messages in case a client is interested
             switch (output) {
                 case "CUEBOK":
                     lastHeardFromDevice = Date.now();
@@ -150,6 +165,7 @@ $(document).ready(function () {
                     online = true;
                     break;
                 default:
+                    //console.log(output);
                     var outputArray = output.split(",");
                     switch (outputArray[0]) {
                         /*
@@ -276,11 +292,12 @@ $(document).ready(function () {
         }
         function sendMessageOSC(message) {
             if (online) {
-                console.log(message);
+                //console.log(message);
                 portConnection.write(message + "\n");
             }
         }
         window.setInterval(function(){
+            io.emit("status", online); //also broadcast the current status to clients
             if (lastHeardFromDevice < (Date.now()-11000) && online != true) { //If we've gone offline now
                 if ($(".warningTriangle").is(":hidden")) {
                     $("h6").fadeOut(function () {
@@ -334,6 +351,17 @@ $(document).ready(function () {
                     setOpacity($(".selector[data-channel=master]"), 0.4);
                 }
             }
+        });
+        io.on("connection", (socket) => {
+            //recieved a button press from the client, need to do something with it
+            socket.on("standby", (station) => {
+                sendMessageOSC("BTNClick," + station);
+                sendMessageOSC("BTNUnClick," + station);
+            });
+            socket.on("go", (station) => {
+                sendMessageOSC("BTNClick," + station);
+                sendMessageOSC("BTNUnClick," + station);
+            });
         });
 
         openConnection(); //Actually open the connection to the arduino

@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>CueB Control</title>
+    <script src="https://code.jquery.com/jquery-3.5.1.js" integrity="sha256-QWo7LDvxbWT2tbbQ97B53yJnYU3WhH/C8ycbRAkjPDc=" crossorigin="anonymous"></script>
+    <style>
+        html {
+            height: 100%;
+            width: 100%;
+        }
+        body {
+            font-family: system, -apple-system, '.SFNSText-Regular', 'SF UI Text', 'Lucida Grande', 'Segoe UI', Ubuntu, Cantarell, sans-serif;
+            color: #fff;
+            background-color: #000000;
+            padding: 0;
+            margin: 0;
+            text-align: center;
+            height: 100%;
+            width: 100%;
+        }
+        h1 {
+            font-size: 150px;
+        }
+        h2 {
+            font-size: 40px;
+        }
+        h4 {
+            /*Header channels*/
+            font-size: 10vmin;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            cursor: default;
+        }
+        h5,
+        h6 {
+            /* Only Standby/Go letters */
+            font-size: 5vmin;
+            opacity: 0.5;
+            color: inherit;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            cursor: default;
+        }
+        p {
+            font-size: 15px;
+        }
+
+
+        @keyframes flashBackgroundRed {
+            0%   { background-color: rgba(255, 0, 0,  0.4); }
+            49% { background-color: rgba(255, 0, 0,  0.4); }
+            50% { background-color: rgba(255, 0, 0,  1); }
+            99% { background-color: rgba(255, 0, 0,  1); }
+            100% { background-color: rgba(255, 0, 0,  0.4); }
+        }
+        @keyframes flashBackgroundGreen {
+            0%   { background-color: rgba(51, 170, 51,  0.4); }
+            49% { background-color: rgba(51, 170, 51,  0.4); }
+            50% { background-color: rgba(51, 170, 51,  1); }
+            99% { background-color: rgba(51, 170, 51,  1); }
+            100% { background-color: rgba(51, 170, 51,  0.4); }
+        }
+        .lockIcon, .thirdLED, .thirdButton {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+<table border="0" style="height: 100%; width: 100%; margin: 0; padding: 0; border-spacing: 1px;">
+    <tr>
+        <td style="min-width:112px;height: 40px; overflow-x: hidden;">
+            <h4 class="channelTitle" data-channel="1">Remote</h4>
+        </td>
+    </tr>
+    <tr>
+        <td class="standby" style="background-color: rgba(255, 0, 0,  0.4);   height: 70px;">
+            <h5 class="warningTriangle">Offline</h5>
+            <h6>STANDBY</h6>
+        </td>
+    </tr>
+    <tr>
+        <td class="go" style="background-color: rgba(0, 255, 0,  0.4);  height: 70px;">
+            <h5 class="warningTriangle">Offline</h5>
+            <h6>GO</h6>
+        </td>
+    </tr>
+</table>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+    const urlParams = new URLSearchParams(window.location.search);
+    let station = urlParams.get('station');
+    const socket = io();
+    //Which station are we?
+    if (station == null){
+        station = 1;
+    }
+    //Led pins
+    const standby_led = [20, 23, 26, 29];
+    const standby_button = [12, 13, 14, 15];
+    const go_led = [21, 24, 27, 30];
+    const go_button = [24, 25, 26, 27];
+
+    //DIV Colour
+    function setOpacity(e, alpha) { //e = jQuery element, alpha = background-opacity
+        b = e.css('backgroundColor');
+        e.css('backgroundColor', 'rgba' + b.slice(b.indexOf('('), ( (b.match(/,/g).length == 2) ? -1 : b.lastIndexOf(',') - b.length) ) + ', '+alpha+')');
+    }
+
+    //Jquery to emit call when buttons pressed
+    $(document).ready(function () {
+        $(".standby").click(function () {
+            socket.emit('standby', standby_button[station - 1].valueOf() );
+        })
+        $(".go").click(function () {
+            socket.emit('go', go_button[station - 1].valueOf());
+        })
+    });
+
+    //connect_error and disconnect check if connection lost
+    socket.on("connect_error", () => {
+        $("h6").fadeOut(function () {
+            $(".warningTriangle").fadeIn();
+        });
+        setTimeout(() => {
+            socket.connect();
+        }, 5000);
+    });
+    socket.on("disconnect", (reason) => {
+        $("h6").fadeOut(function () {
+            $(".warningTriangle").fadeIn();
+        });
+        setTimeout(() => {
+            socket.connect();
+        }, 5000);
+    });
+
+    //Checks status of server & arduino and updates interface.
+    socket.on("status", (state) => {
+        if (state){
+            if ($(".warningTriangle").is(":hidden") == false) {
+                $(".warningTriangle").fadeOut(function () {
+                    $("h6").fadeIn();
+                });
+            }
+        } else {
+            $("h6").fadeOut(function () {
+                $(".warningTriangle").fadeIn();
+            });
+        }
+    });
+    //react to arduino's 'OSC' messages
+    socket.on("OSCMessages", (button) => {
+        /*
+        0 = Command
+        1 = Channel (0 if not a channel)
+        2 = Button id
+        3 = Status (0 = up, 1 = down)
+         */
+        let outputArray = button.split(",");
+        switch (outputArray[0]) {
+            case "LEDStatus":
+                let LEDSelector = false;
+                if (standby_led[station - 1] === parseInt(outputArray[1])){
+                    LEDSelector = '.standby';
+                } else if (go_led[station - 1] === parseInt(outputArray[1])){
+                    LEDSelector = '.go';
+                }
+
+                if (LEDSelector) {
+                    if (outputArray[2] == 1) {
+                        //Turned on
+                        $(LEDSelector).css("animation","");
+                        if ($(LEDSelector).css("background-color") && $(LEDSelector).css("background-color") !== "rgba(0, 0, 0, 0)") {
+                            setOpacity($(LEDSelector), 1);
+                        } else {
+                            $(LEDSelector).show();
+                        }
+                    } else if (outputArray[2] == 0) {
+                        //Turned off
+                        $(LEDSelector).css("animation","");
+                        if ($(LEDSelector).css("background-color") && $(LEDSelector).css("background-color") !== "rgba(0, 0, 0, 0)") {
+                            setOpacity($(LEDSelector), 0.4);
+                        } else {
+                            $(LEDSelector).hide();
+                        }
+                    } else {
+                        //It's a flash - atm only the red ones actually have to flash
+                        $(LEDSelector).css("animation","flashBackgroundRed " + (1/outputArray[2])*2 + "s linear infinite");
+                    }
+                }
+        }
+    });
+</script>
+</body>
+</html>
