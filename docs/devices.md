@@ -7,7 +7,7 @@
 | [v1.2](#v12) | ✓ | ✓ |  |  |  |  |
 | [v2](#v2) |  | ✓ | ✓ | ✓ |  | ✓ |  |
 | [v3](#v3) |  |  |  |  |  | ✓ |  |
-| [v4](#v4) |  |  |  |  |  |  | ✓ |
+| [v4](#v4) |  |  |  |  |  | ✓ | ✓ |
 
 ### v1.2
 
@@ -48,7 +48,7 @@
 
 | Serial Number | Date finished | Remarks |
 |---|---|---|
-| v4.00 #1 | 11 February 2021 | For University of York DramaSoc. Channel 4 lock status is faulty, Channel 1 3rd LED is faulty. |
+| v4.00 #1 | 11 February 2021 | For University of York DramaSoc. Channel 4 lock status is faulty, Channel 1 key switch is disabled, due to hardware constraints. |
 
 
 

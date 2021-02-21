@@ -15,4 +15,4 @@ Uses B Standard wiring (normally)
 
 Minimum wires per outstation = 5 (3,4,6,7,8). 4 channels can therefore in theory be crammed onto an Arduino Uno
 
-**N.B.** Take note of the pins used by the Ethernet Hat on the networked version, as these can't also be used
+**N.B.** Take note of the pins used by the Ethernet Hat on the networked version, as these can't also be used. This is on digital pins 10, 11, 12, and 13 on the Uno and pins 50, 51, and 52 on the Mega
