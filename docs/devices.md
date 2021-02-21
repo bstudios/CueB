@@ -48,7 +48,7 @@
 
 | Serial Number | Date finished | Remarks |
 |---|---|---|
-| v4.00 #1 | 11 February 2021 | For University of York DramaSoc.  |
+| v4.00 #1 | 11 February 2021 | For University of York DramaSoc. Channel 4 lock status is faulty, Channel 1 3rd LED is faulty. |
 
 
 
