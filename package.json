@@ -28,5 +28,8 @@
     "jquery": "^3.3.1",
     "osc": "^2.2.0",
     "serialport": "^9.0.6"
+  },
+  "optionalDependencies": {
+    "windows-build-tools": "^5.1.0"
   }
 }
