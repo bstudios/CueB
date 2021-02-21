@@ -28,7 +28,7 @@
     "fitty": "^2.2.6",
     "jquery": "^3.3.1",
     "osc": "^2.2.0",
+    "serialport": "^9.0.6",
     "socket.io": "^3.0.5"
-    "serialport": "^9.0.6"
   }
 }
