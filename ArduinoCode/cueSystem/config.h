@@ -79,8 +79,6 @@ const int ledFacepanelFrequencyCallback = 10; //Flash frequency for callback lig
 const int ledOutstationFrequencyCallback = 10; //Flash frequency for callback light on controller (Hz)
 const int bootDelayForLEDFlashTime = 50; //How long to display each LED for in the boot sequence (it flashes each LED in turn for this amount of time
 const unsigned long buttonsDebounceDelay = 100; // How long to do a debounce check for
-const bool callbackOff = false; //TODO move these to a setting in menu
-const bool pushToGoOff = false; //TODO move these to a setting in menu
 
 //      SET TO 255 if doesn't exist
 //v2 Controller
@@ -90,6 +88,8 @@ const bool pushToGoOff = false; //TODO move these to a setting in menu
 //const byte lcdPins[8] = {2, 1, 0, 4, 5, 6, 7, 3}; //Set first one to 255 if not fitted
 //#define NETWORKED false
 //#define DHCP false
+//const bool callbackOff = false;
+//const bool pushToGoOff = false;
 
 //v3 Controller
 //const byte buttonsPins[buttonsCount] = {255,255,255,255,255,255,255,255,255,255,255,255,36,39,13,52,26,34,49,51,11,12,50,48,28,45,8,40,255}; //The pins of each of the buttons currently in existence
@@ -98,12 +98,16 @@ const bool pushToGoOff = false; //TODO move these to a setting in menu
 //const byte lcdPins[8] = {255, 255, 255, 255, 255, 255, 255, 255}; //Set first one to 255 if not fitted
 //#define NETWORKED false
 //#define DHCP false
+//const bool callbackOff = true;
+//const bool pushToGoOff = false;
 
 //v4 Controller
-const byte buttonsPins[buttonsCount] = {255,255,255,255,255,255,255,255,255,255,255,255,45,52,32,11,49,51,37,48,29,31,12,13,53,44,26,9,255}; //The pins of each of the buttons currently in existence
+const byte buttonsPins[buttonsCount] = {255,255,255,255,255,255,255,255,255,255,255,255,46,53,32,11,36,38,255,49,29,31,12,13,40,41,26,9,255}; //The pins of each of the buttons currently in existence
 const int buttonsDownState[buttonsCount] = {LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,HIGH,HIGH,HIGH,HIGH,HIGH,HIGH,HIGH,HIGH,LOW,LOW,LOW,LOW,LOW}; //The state that the button is in when it's down (ie pressed)
-const byte ledPins[ledCount] = {255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,41,43,47,40,42,46,30,28,33,8,7,10,255};
+const byte ledPins[ledCount] = {255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,48,44,42,45,47,43,30,28,33,8,7,10,255};
 const byte lcdPins[8] = {255, 255, 255, 255, 255, 255, 255, 255}; //Set first one to 255 if not fitted
 byte mac[]{ 0xA8,0x61,0x0A,0xAE,0x69,0xC4 };
+const bool callbackOff = true;
+const bool pushToGoOff = true;
 #define NETWORKED true
-#define DHCP true
+#define DHCP false

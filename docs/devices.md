@@ -48,7 +48,7 @@
 
 | Serial Number | Date finished | Remarks |
 |---|---|---|
-| v4.00 #1 | 11 February 2021 | For University of York DramaSoc. Channel 4 lock status is faulty, Channel 1 key switch is disabled, due to hardware constraints. |
+| v4.00 #1 | 11 February 2021 | For University of York DramaSoc. Channel 4 lock status is faulty, Channel 2 key switch is disabled, due to hardware constraints. |
 
 
 
