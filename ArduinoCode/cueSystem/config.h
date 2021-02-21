@@ -88,15 +88,22 @@ const bool pushToGoOff = false; //TODO move these to a setting in menu
 //const int buttonsDownState[buttonsCount] = {LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,HIGH,LOW}; //The state that the button is in when it's down (ie pressed)
 //const byte ledPins[ledCount] = {32,31,33,43,39,51,47,44,48,38,40,34,255,255,255,255,255,255,52,50,12,11,255,9,13,255,3,6,255,4,14,255,255}; //The pins of each of the KEDs currently in existence
 //const byte lcdPins[8] = {2, 1, 0, 4, 5, 6, 7, 3}; //Set first one to 255 if not fitted
+//#define NETWORKED false
+//#define DHCP false
 
 //v3 Controller
 //const byte buttonsPins[buttonsCount] = {255,255,255,255,255,255,255,255,255,255,255,255,36,39,13,52,26,34,49,51,11,12,50,48,28,45,8,40,255}; //The pins of each of the buttons currently in existence
 //const int buttonsDownState[buttonsCount] = {LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,HIGH,HIGH,HIGH,HIGH,HIGH,HIGH,HIGH,HIGH,LOW,LOW,LOW,LOW,LOW}; //The state that the button is in when it's down (ie pressed)
 //const byte ledPins[ledCount] = {255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,38,30,32,41,43,47,9,10,7,44,24,42,255}; //The pins of each of the LEDs currently in existence
 //const byte lcdPins[8] = {255, 255, 255, 255, 255, 255, 255, 255}; //Set first one to 255 if not fitted
+//#define NETWORKED false
+//#define DHCP false
 
 //v4 Controller
 const byte buttonsPins[buttonsCount] = {255,255,255,255,255,255,255,255,255,255,255,255,45,52,32,11,49,51,37,48,29,31,12,13,53,44,26,9,255}; //The pins of each of the buttons currently in existence
 const int buttonsDownState[buttonsCount] = {LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,HIGH,HIGH,HIGH,HIGH,HIGH,HIGH,HIGH,HIGH,LOW,LOW,LOW,LOW,LOW}; //The state that the button is in when it's down (ie pressed)
 const byte ledPins[ledCount] = {255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,41,43,47,40,42,46,30,28,33,8,7,10,255};
 const byte lcdPins[8] = {255, 255, 255, 255, 255, 255, 255, 255}; //Set first one to 255 if not fitted
+byte mac[]{ 0xA8,0x61,0x0A,0xAE,0x69,0xC4 };
+#define NETWORKED true
+#define DHCP true

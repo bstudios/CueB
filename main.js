@@ -1,6 +1,7 @@
 const electron = require('electron')
 const {Menu} = require('electron')
 const {dialog} = require('electron')
+const os = require("os")
 // Module to control application life.
 const app = electron.app
 // Module to create native browser window.
@@ -97,15 +98,20 @@ const menu = Menu.buildFromTemplate(template)
 // be closed automatically when the JavaScript object is garbage collected.
 let mainStartWindow;
 let mainWindow;
-let comPort;
-comPort = "";
+let comPort = "";
 global.comPort = comPort;
-
-global.createWindow = function(comPortVar) {
+let socketPort = "";
+global.socketPort = socketPort;
+global.createWindow = function(comPortVar, socketPortVar) {
     // Create the browser window.
     global.comPort = comPortVar;
+    global.socketPort = socketPortVar;
     mainWindow = new BrowserWindow({
-        width: 600, height: 400, minHeight: 400, minWidth: 600,
+        width: 800,
+        height: 480,
+        minWidth: 800,
+        minHeight: 480,
+        fullscreen: (os.platform() == "linux"),
         resizable: debugShow,
         title: "CueB",
         icon: path.join(__dirname, 'assets/icon/scaled/64x64.png')
@@ -139,7 +145,12 @@ global.createWindow = function(comPortVar) {
 
 function createStartWindow () {
   // Create the browser window.
-  mainStartWindow = new BrowserWindow({width: 800, height: 600, frame: false})
+  mainStartWindow = new BrowserWindow({
+      width: 800,
+      height: 480,
+      fullscreen: (os.platform() == "linux"),
+      frame: false
+  })
   mainStartWindow.setMenu(null);
   // and load the index.html of the app.
   mainStartWindow.loadURL(url.format({

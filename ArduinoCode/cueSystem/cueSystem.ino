@@ -11,6 +11,7 @@ const String currentVersion = "Version 4.0";
 
 #include <string.h>
 
+
 //  CONFIG
 const String buttonDetails(byte buttonID) {
   switch (buttonID) {
@@ -262,9 +263,26 @@ const unsigned int cueOutstationPins1[] = {5, 6, 13, 25, 18, 19, 5, 6, 14, 15, 2
 const unsigned int cueOutstationPins2[] = {7, 8, 14, 26, 20, 21, 7, 8, 16, 17, 26, 27, 28};
 const unsigned int cueOutstationPins3[] = {9, 10, 15, 27, 22, 23, 9, 10, 18, 19, 29, 30, 31};
 
+
 #include "config.h"
 
-
+#if NETWORKED
+  constexpr uint16_t port = 80;
+  //Ethernet Element
+  #include <WebSocketServer.h> //github.com/skaarj1989/mWebSockets
+  #include <SPI.h>
+  #include <Ethernet.h>
+  using namespace net;
+  IPAddress ip( 192, 168, 1, 3 );
+  WebSocketServer wss(port);
+#endif 
+void serialBroadcast(String text) {
+  Serial.println(text);
+  #if NETWORKED
+    const char * message = text.c_str();
+    wss.broadcast(WebSocket::DataType::TEXT, message, strlen(message));
+  #endif
+}
 //  SETUP
 //      BUTTONS
 unsigned long buttonsLastDebounceTime[buttonsCount]; //The last time each button was pressed
@@ -361,7 +379,7 @@ void loopCheckStateOfButtons() {
 }
 // Function called when a button is released - it's expected this won't normally be used
 void buttonReleased(int i, unsigned long holdTime) { //holdTime is how long the button was held for before being released in Milliseconds
-  Serial.println(String("BTNRelease,")+buttonDetailsCoded(i)+","+holdTime+"");
+  serialBroadcast(String("BTNRelease,")+buttonDetailsCoded(i)+","+holdTime+"");
   if (pushToGoOff != true) {
     //Their system is using push to go so if this is a go button that's illuminated it should be turned off as they release it
     if (i == 11 and (cueChannelState[0] == 4 or cueChannelState[1] == 4 or cueChannelState[2] == 4 or cueChannelState[3] == 4)) {
@@ -456,7 +474,7 @@ void buttonReleased(int i, unsigned long holdTime) { //holdTime is how long the 
 }
 // Function called when a button is pressed
 void buttonPressed(int i) {
-  Serial.println(String("BTNPress,")+buttonDetailsCoded(i));
+  serialBroadcast(String("BTNPress,")+buttonDetailsCoded(i));
   switch (i) {
     case 1: //Enter
       if (menuMode == 0) {
@@ -817,7 +835,7 @@ bool channelGoButton(int i, unsigned int outstationPins[]) {
 //      LEDs
 void ledOn(int i) {
   ledFlashingFrequency[i] = 0; //Stop any flashing
-  Serial.println(String("LEDStatus,")+i+","+"1");
+  serialBroadcast(String("LEDStatus,")+i+","+"1");
   if (ledPins[i] != 255) { //Not fitted to this device
     digitalWrite(ledPins[i], HIGH);
   }
@@ -825,7 +843,7 @@ void ledOn(int i) {
 }
 void ledOff(int i) {
   ledFlashingFrequency[i] = 0; //Stop any flashing
-  Serial.println(String("LEDStatus,")+i+","+"0");
+  serialBroadcast(String("LEDStatus,")+i+","+"0");
   if (ledPins[i] != 255) { //Not fitted to this device
     digitalWrite(ledPins[i], LOW);
   }  
@@ -845,7 +863,7 @@ bool ledFlashing(int i) { //Is the LED i flashing?
 }
 void ledFlash(int i, unsigned int frequency) { //Start this LED flashing - to stop it set it to off or on using other functions. frequency is in Hz
   ledFlashingFrequency[i] = frequency;
-  Serial.println(String("LEDStatus,")+i+","+frequency);
+  serialBroadcast(String("LEDStatus,")+i+","+frequency);
 }
 void loopHandleLedFlashes() { //Called in the loop
   int i;
@@ -881,7 +899,7 @@ void handleSerialMessage(String messageString) {
   String forthValue = messageString.substring(thirdCommaIndex + 1);
 
   if (firstValue == "PING") {
-    Serial.println("CUEBOK");
+    serialBroadcast("CUEBOK");
   } else if (firstValue == "LED") {
     /*
      * LED COMMAND
@@ -909,11 +927,11 @@ void handleSerialMessage(String messageString) {
       ledOff(ledNumber);
     } else if (ledStatusCommand == 2) {
       if (ledStatus(ledNumber)) {
-        Serial.println("LEDStatus:1");
+        serialBroadcast("LEDStatus:1");
       } else if (ledFlashing(ledNumber)) {
-        Serial.println("LEDStatus:2");
+        serialBroadcast("LEDStatus:2");
       } else {
-        Serial.println("LEDStatus:0");
+        serialBroadcast("LEDStatus:0");
       }
     }
   } else if (firstValue == "LEDFlash") {
@@ -966,10 +984,10 @@ void handleSerialMessage(String messageString) {
     int pinNumber = secondValue.toInt();
     buttonReleased(pinNumber,0);
   } else {
-    Serial.println(firstValue);
-    Serial.println(secondValue);
-    Serial.println(thirdValue);
-    Serial.println(forthValue);
+    serialBroadcast(firstValue);
+    serialBroadcast(secondValue);
+    serialBroadcast(thirdValue);
+    serialBroadcast(forthValue);
   }
 }
 
@@ -977,9 +995,13 @@ void handleSerialMessage(String messageString) {
 String readString;
 void setup() {
   Serial.begin(115200);
+  #if !NETWORKED
   while (!Serial) {
     ; // wait for serial port to connect. Needed for native USB port only
   }
+  #endif
+
+  
 
   //    SCREEN
   if (lcdPins[0] != 255) {
@@ -1007,9 +1029,9 @@ void setup() {
       buttonsLastState[i] = digitalRead(buttonsPins[i]);
       buttonsState[i] = digitalRead(buttonsPins[i]);
       if (buttonsState[i] != buttonsDownState[i]) {
-        Serial.println(String("BTNStatus,")+buttonDetailsCoded(i)+","+"0");
+        serialBroadcast(String("BTNStatus,")+buttonDetailsCoded(i)+","+"0");
       } else {
-        Serial.println(String("BTNStatus,")+buttonDetailsCoded(i)+","+"1");
+        serialBroadcast(String("BTNStatus,")+buttonDetailsCoded(i)+","+"1");
       }
       buttonsHeldTime[i] = millis();
     }
@@ -1060,12 +1082,79 @@ void setup() {
     ledOn(cueOutstationPins3[8]);
   }
 
+  #if NETWORKED
+    #if DHCP
+      Ethernet.begin(mac);
+    #else
+      Ethernet.begin(mac,ip);
+    #endif
+    if (Ethernet.hardwareStatus() == EthernetNoHardware) {
+      Serial.println("Ethernet shield was not found.");
+      while (true) {
+        delay(1); // do nothing, no point running without Ethernet hardware
+      }
+    }
+    else if (Ethernet.hardwareStatus() == EthernetW5100) {
+      Serial.println("W5100 Ethernet controller detected.");
+    }
+    else if (Ethernet.hardwareStatus() == EthernetW5200) {
+      Serial.println("W5200 Ethernet controller detected.");
+    }
+    else if (Ethernet.hardwareStatus() == EthernetW5500) {
+      Serial.println("W5500 Ethernet controller detected.");
+    }
+  
+    if (Ethernet.linkStatus() == LinkOFF) {
+      Serial.println("Ethernet cable is not connected.");
+    }
+    
+    Serial.print(F("Server running at "));
+    Serial.print(Ethernet.localIP());
+    Serial.print(F(":"));
+    Serial.println(port);
+    if (Ethernet.linkStatus() == LinkOFF) {
+      Serial.println("Ethernet cable is not connected.");
+    }
+    
+    wss.onConnection([](WebSocket &ws) {
+      ws.onMessage([](WebSocket &ws, const WebSocket::DataType &dataType,
+                     const char *message, uint16_t length) {
+        switch (dataType) {
+        case WebSocket::DataType::TEXT:
+          Serial.print(F("Received: "));
+          Serial.println(message);
+          handleSerialMessage(message);
+          break;
+        case WebSocket::DataType::BINARY:
+          Serial.println(F("Received binary data"));
+          break;
+        }
+  
+        ws.send(dataType, message, length);
+      });
+  
+      ws.onClose(
+        [](WebSocket &ws, const WebSocket::CloseCode &code, const char *reason,
+          uint16_t length) {
+            Serial.println(F("Disconnected")); 
+            });
+  
+      Serial.print(F("New client: "));
+      Serial.println(ws.getRemoteIP());
+  
+      const char message[]{ "CUEBOK" };
+      ws.send(WebSocket::DataType::TEXT, message, strlen(message));
+    });
+  
+    wss.begin();
+  #endif
+  
 
   //    SETUP DONE
-  Serial.println("CUEBOK");
+  serialBroadcast("CUEBOK");
   writeToScreen("      CueB      ", 1);
   writeToScreen("****************", 2);
-  ledOn(0);
+  ledOn(0);  
 }
 
 void loop() {
@@ -1075,7 +1164,7 @@ void loop() {
   if (Serial.available())  {
     char c = Serial.read();  //gets one byte from serial buffer
     if (c == '\n') {  //looks for end of data packet marker 
-      Serial.println(readString); //prints string to serial port out
+      serialBroadcast(readString); //prints string to serial port out
       handleSerialMessage(readString);
       readString=""; //clears variable for new input      
      }  
@@ -1083,4 +1172,7 @@ void loop() {
       readString += c; //makes the string readString
     }
   }
+  #if NETWORKED
+    wss.listen();
+  #endif
 }
