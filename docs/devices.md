@@ -2,11 +2,12 @@
 ## Controllers
 ### Table of features
 
-| Generation | Master standby | Master go | LCD | Indicator lights | Cue programming | USB Link |
-| --- | --- | --- | --- | --- | --- | --- |
+| Generation | Master standby | Master go | LCD | Indicator lights | Cue programming | USB Link | Socket Network |
+| --- | --- | --- | --- | --- | --- | --- | --- |
 | [v1.2](#v12) | ✓ | ✓ |  |  |  |  |
-| [v2](#v2) |  | ✓ | ✓ | ✓ |  | ✓ |
-| [v3](#v3) |  |  |  |  |  | ✓ |
+| [v2](#v2) |  | ✓ | ✓ | ✓ |  | ✓ |  |
+| [v3](#v3) |  |  |  |  |  | ✓ |  |
+| [v4](#v4) |  |  |  |  |  |  | ✓ |
 
 ### v1.2
 
@@ -28,13 +29,28 @@
 | | |
 |---|---|
 | Number produced | 1 |
-| Still in production? | On request |
+| Still in production? | No |
 | Dates of production | December 2018 |
 | Notes | *Design produced for University of York DramaSoc* | 
 
 | Serial Number | Date finished | Remarks |
 |---|---|---|
-| v3.0C #1 | 1 December 2018 | For University of York DramaSoc |
+| v3.0C #1 | 1 December 2018 | For University of York DramaSoc.  |
+
+### v4
+
+| | |
+|---|---|
+| Number produced | 1 |
+| Still in production? | On Request |
+| Dates of production | February 2021 |
+| Notes | *Design produced for University of York DramaSoc* | 
+
+| Serial Number | Date finished | Remarks |
+|---|---|---|
+| v4.00 #1 | 11 February 2021 | For University of York DramaSoc. Channel 4 lock status is faulty, Channel 1 3rd LED is faulty. |
+
+
 
 ## Outstatations
 ### Table of features
