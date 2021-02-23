@@ -102,9 +102,9 @@ const unsigned long buttonsDebounceDelay = 100; // How long to do a debounce che
 //const bool pushToGoOff = false;
 
 //v4 Controller
-const byte buttonsPins[buttonsCount] = {255,255,255,255,255,255,255,255,255,255,255,255,46,53,32,11,36,38,255,49,29,31,12,13,40,41,26,9,255}; //The pins of each of the buttons currently in existence
+const byte buttonsPins[buttonsCount] = {255,255,255,255,255,255,255,255,255,255,255,255,46,43,32,11,36,38,255,255,29,31,12,13,40,41,26,9,255}; //The pins of each of the buttons currently in existence
 const int buttonsDownState[buttonsCount] = {LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,LOW,HIGH,HIGH,HIGH,HIGH,HIGH,HIGH,HIGH,HIGH,LOW,LOW,LOW,LOW,LOW}; //The state that the button is in when it's down (ie pressed)
-const byte ledPins[ledCount] = {255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,48,44,42,45,47,43,30,28,33,8,7,10,255};
+const byte ledPins[ledCount] = {255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,48,44,42,37,39,47,30,28,33,8,7,10,255};
 const byte lcdPins[8] = {255, 255, 255, 255, 255, 255, 255, 255}; //Set first one to 255 if not fitted
 byte mac[]{ 0xA8,0x61,0x0A,0xAE,0x69,0xC4 };
 const bool callbackOff = true;
