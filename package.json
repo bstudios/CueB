@@ -26,6 +26,7 @@
   },
   "dependencies": {
     "electron-settings": "3.2.0",
+    "express": "^4.17.1",
     "fitty": "^2.2.6",
     "jquery": "^3.3.1",
     "osc": "^2.2.0",

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>CueB Control</title>
-    <script src="https://code.jquery.com/jquery-3.5.1.js" integrity="sha256-QWo7LDvxbWT2tbbQ97B53yJnYU3WhH/C8ycbRAkjPDc=" crossorigin="anonymous"></script>
+    <script src="jquery-3.6.0.min.js" ></script>
     <style>
         html {
             height: 100%;
@@ -90,8 +90,8 @@
 </table>
 <script src="/socket.io/socket.io.js"></script>
 <script>
-    const urlParams = new URLSearchParams(window.location.search);
-    let station = urlParams.get('station');
+    //const urlParams = new URLSearchParams(window.location.search);
+    let station// = urlParams.get('station');
     const socket = io();
     //Which station are we?
     if (station == null){

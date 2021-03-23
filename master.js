@@ -119,19 +119,20 @@ ipcRenderer.on('newFile', function(evt, msg) {
 /** Socket.io setup
  * This implementation uses a http webserver to serve a 'remote' page
  */
-const remoteContent = require('fs').readFileSync(__dirname + '/remote.html', 'utf8');
-const httpServer = require('http').createServer((req, res) => {
-    // serve the remote.html file
-    res.setHeader('Content-Type', 'text/html');
-    res.setHeader('Content-Length', Buffer.byteLength(remoteContent));
-    res.end(remoteContent);
-});
-const io = require('socket.io')(httpServer);
+const express = require('express');
+const app = express();
+const server = require('http').createServer(app);
+const io = require('socket.io')(server);
+const port = 3000;
 
-httpServer.listen(3000, () => {
+server.listen(port, () => {
     console.log('Remote control server running on http://localhost:3000');
     $("#remote").html("http://localhost:3000");
 });
+//routing
+app.use(express.static(path.join(__dirname, 'public')));
+
+
 //Functions
 function recieveMessageOSC(output) {
     io.emit("OSCMessages", output);// Broadcast all received messages in case a client is interested
