@@ -71,7 +71,7 @@
       ]
     },
     "deb": {},
-    "artifactName": "${productName} ${os}${arch} ${version}.${ext}",
+    "artifactName": "CueB_${os}${arch}_${version}.${ext}",
     "forceCodeSigning": false,
     "publish": null
   }
