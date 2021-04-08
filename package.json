@@ -6,11 +6,7 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "install": "electron-rebuild",
-    "package-mac": "electron-packager . --overwrite --platform=darwin --arch=x64 --icon=assets/icon/scaled/icon.icns --prune=true --out=dist",
-    "package-win": "electron-packager . cueb --overwrite --asar=true --platform=win32 --arch=x64 --icon=assets/icon/scaled/icon.ico --prune=true --out=dist --version-string.CompanyName=JBithell --version-string.FileDescription=CueB Show Control --version-string.ProductName=\"CueB Controller Software\"",
-    "package-linux": "electron-packager . cueb --overwrite --asar=true --platform=linux --arch=x64 --icon=assets/icon/scaled/1024x1024.png --prune=true --out=dist",
-    "package-pi": "electron-builder --armv7l --dir"
+    "package": "electron-builder"
   },
   "repository": {
     "type": "git",
@@ -21,8 +17,7 @@
     "electron": "^3.1.1",
     "electron-builder": "^22.9.1",
     "electron-installer-dmg": "^2.0.0",
-    "electron-packager": "^13.0.1",
-    "electron-rebuild": "^1.8.4"
+    "electron-packager": "^13.0.1"
   },
   "dependencies": {
     "electron-settings": "3.2.0",
@@ -41,15 +36,37 @@
     "appId": "com.jbithell.CueB",
     "productName": "CueB Controller Software",
     "linux": {
-      "target": {
-        "target": "appimage",
-        "arch": [
-          "armv7l"
-        ]
-      }
+      "icon": "assets/icon/scaled/1024x1024.png",
+      "target": [
+        {
+          "target": "appimage",
+          "arch": [
+            "armv7l"
+          ]
+        }
+      ]
+    },
+    "mac": {
+      "icon": "assets/icon/scaled/icon.icns",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": "x64"
+        }
+      ]
+    },
+    "win": {
+      "asar": true,
+      "icon": "assets/icon/scaled/icon.ico",
+      "target": [
+        {
+          "target": "portable",
+          "arch": "x64"
+        }
+      ]
     },
     "deb": {},
-    "artifactName": "CueB_${version}.${ext}",
+    "artifactName": "${productName} ${os}${arch} ${version}.${ext}",
     "forceCodeSigning": false
   }
 }

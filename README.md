@@ -10,8 +10,5 @@ npm install && npm start
 
 ## Packaging
 ```
-npm run package-mac
-npm run package-win
-npm run package-linux
-npm run package-pi
+npm run package
 ```
