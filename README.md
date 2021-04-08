@@ -1,5 +1,8 @@
 # CueB
 
+[![Test Build](https://github.com/Jbithell/CueB/actions/workflows/electron-test-build.yml/badge.svg?branch=master)](https://github.com/Jbithell/CueB/actions/workflows/electron-test-build.yml)
+
+
 ## Development
 
 

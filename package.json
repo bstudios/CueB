@@ -32,7 +32,7 @@
     "uuid": "^3.3.2"
   },
   "optionalDependencies": {
-    "windows-build-tools": "^5.1.0"
+    "windows-build-tools": "^4.0.0"
   },
   "build": {
     "appId": "com.jbithell.CueB",
