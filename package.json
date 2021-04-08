@@ -1,7 +1,7 @@
 {
   "name": "cueb",
   "productName": "CueB Controller Software",
-  "version": "5.1.3",
+  "version": "5.1.4",
   "description": "Theatre CueLight system built on an Arduino",
   "main": "main.js",
   "scripts": {
@@ -28,9 +28,6 @@
     "serialport": "^9.0.7",
     "socket.io": "^3.0.5",
     "uuid": "^3.3.2"
-  },
-  "optionalDependencies": {
-    "windows-build-tools": "^4.0.0"
   },
   "build": {
     "npmRebuild": true,
