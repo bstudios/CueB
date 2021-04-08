@@ -1,8 +1,8 @@
 name: Build
 on:
-  release:
-    types:
-      - published
+  push:
+    tags:
+      - '*'
 jobs:
   build:
     name: Build
@@ -23,6 +23,7 @@ jobs:
         with:
           tag_name: ${{ github.ref }}
           files: dist/*.*
-          draft: true
+          body: Latest build
+          draft: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
