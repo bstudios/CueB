@@ -9,7 +9,7 @@ const BrowserWindow = electron.BrowserWindow
 
 const persistentSettings = require('electron-settings');
 
-var debugShow = false;
+var debugShow = true;
 
 const path = require('path')
 const url = require('url')
