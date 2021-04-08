@@ -1,7 +1,7 @@
 {
   "name": "cueb",
   "productName": "CueB Controller Software",
-  "version": "5.1.6",
+  "version": "5.1.7",
   "description": "Theatre CueLight system built on an Arduino",
   "main": "main.js",
   "scripts": {
@@ -37,14 +37,7 @@
     "linux": {
       "icon": "assets/icon/scaled/1024x1024.png",
       "category": "Utility",
-      "target": [
-        {
-          "target": "appimage",
-          "arch": [
-            "armv7l"
-          ]
-        }
-      ]
+      "target": []
     },
     "mac": {
       "icon": "assets/icon/scaled/icon.icns",
