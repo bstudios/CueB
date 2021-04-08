@@ -1,7 +1,7 @@
 {
   "name": "cueb",
   "productName": "CueB Controller Software",
-  "version": "4.2.0",
+  "version": "5.1.0",
   "description": "Theatre CueLight system built on an Arduino",
   "main": "main.js",
   "scripts": {
