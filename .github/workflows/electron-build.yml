@@ -16,12 +16,18 @@ jobs:
         uses: actions/setup-node@v2
       - name: Install dependencies
         run: npm install
+      - name: patch node gyp on windows to support Visual Studio 2019
+        shell: powershell
+        if: startsWith(matrix.os,'windows')
+        run: |
+          npm install --global node-gyp@latest
+          npm prefix -g | % {npm config set node_gyp "$_\node_modules\node-gyp\bin\node-gyp.js"}
       - name: Geneate a build
         run: npm run package
       - name: Upload builds to release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{ github.ref }}
+          tag_name: ${{ github.event.release.tag_name }}
           files: dist/*.*
           body: Latest build
           draft: false
