@@ -1,5 +1,8 @@
 # CueB
 
+[![Test Build](https://github.com/Jbithell/CueB/actions/workflows/electron-test-build.yml/badge.svg?branch=master)](https://github.com/Jbithell/CueB/actions/workflows/electron-test-build.yml)
+
+
 ## Development
 
 
@@ -10,8 +13,5 @@ npm install && npm start
 
 ## Packaging
 ```
-npm run package-mac
-npm run package-win
-npm run package-linux
-npm run package-pi
+npm run package
 ```

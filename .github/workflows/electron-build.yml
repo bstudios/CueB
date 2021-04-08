@@ -1,0 +1,29 @@
+name: Build
+on:
+  push:
+    tags:
+      - '*'
+jobs:
+  build:
+    name: Build
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup NodeJs
+        uses: actions/setup-node@v2
+      - name: Install dependencies
+        run: npm install
+      - name: Geneate a build
+        run: npm run package
+      - name: Upload builds to release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.ref }}
+          files: dist/*.*
+          body: Latest build
+          draft: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

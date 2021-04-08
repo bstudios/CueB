@@ -399,6 +399,9 @@ $(document).ready(function () {
         sendMessageOSC = function(message) {
             return;
         }
+        openConnection = function() {
+            return;
+        }
     }
 
     io.on("connection", (socket) => {

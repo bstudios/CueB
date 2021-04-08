@@ -1,16 +1,13 @@
 {
   "name": "cueb",
   "productName": "CueB Controller Software",
-  "version": "4.2.0",
+  "version": "5.1.0",
   "description": "Theatre CueLight system built on an Arduino",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "install": "electron-rebuild",
-    "package-mac": "electron-packager . --overwrite --platform=darwin --arch=x64 --icon=assets/icon/scaled/icon.icns --prune=true --out=dist",
-    "package-win": "electron-packager . cueb --overwrite --asar=true --platform=win32 --arch=x64 --icon=assets/icon/scaled/icon.ico --prune=true --out=dist --version-string.CompanyName=JBithell --version-string.FileDescription=CueB Show Control --version-string.ProductName=\"CueB Controller Software\"",
-    "package-linux": "electron-packager . cueb --overwrite --asar=true --platform=linux --arch=x64 --icon=assets/icon/scaled/1024x1024.png --prune=true --out=dist",
-    "package-pi": "electron-builder --armv7l --dir"
+    "package": "electron-builder",
+    "postinstall": "electron-builder install-app-deps"
   },
   "repository": {
     "type": "git",
@@ -22,7 +19,7 @@
     "electron-builder": "^22.9.1",
     "electron-installer-dmg": "^2.0.0",
     "electron-packager": "^13.0.1",
-    "electron-rebuild": "^1.8.4"
+    "electron-rebuild": "^2.3.5"
   },
   "dependencies": {
     "electron-settings": "3.2.0",
@@ -30,26 +27,52 @@
     "fitty": "^2.2.6",
     "jquery": "^3.3.1",
     "osc": "^2.2.0",
-    "serialport": "^9.0.6",
+    "serialport": "^9.0.7",
     "socket.io": "^3.0.5",
     "uuid": "^3.3.2"
   },
   "optionalDependencies": {
-    "windows-build-tools": "^5.1.0"
+    "windows-build-tools": "^4.0.0"
   },
   "build": {
+    "npmRebuild": true,
+    "buildDependenciesFromSource": true,
     "appId": "com.jbithell.CueB",
     "productName": "CueB Controller Software",
     "linux": {
-      "target": {
-        "target": "appimage",
-        "arch": [
-          "armv7l"
-        ]
-      }
+      "icon": "assets/icon/scaled/1024x1024.png",
+      "category": "Utility",
+      "target": [
+        {
+          "target": "appimage",
+          "arch": [
+            "armv7l"
+          ]
+        }
+      ]
+    },
+    "mac": {
+      "icon": "assets/icon/scaled/icon.icns",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": "x64"
+        }
+      ]
+    },
+    "win": {
+      "asar": true,
+      "icon": "assets/icon/scaled/icon.ico",
+      "target": [
+        {
+          "target": "portable",
+          "arch": "x64"
+        }
+      ]
     },
     "deb": {},
-    "artifactName": "CueB_${version}.${ext}",
-    "forceCodeSigning": false
+    "artifactName": "CueB_${os}${arch}_${version}.${ext}",
+    "forceCodeSigning": false,
+    "publish": null
   }
 }
