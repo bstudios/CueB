@@ -39,6 +39,7 @@
     "productName": "CueB Controller Software",
     "linux": {
       "icon": "assets/icon/scaled/1024x1024.png",
+      "category": "Utility",
       "target": [
         {
           "target": "appimage",
