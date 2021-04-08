@@ -27,7 +27,7 @@ jobs:
       - name: Upload builds to release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{ github.ref }}
+          tag_name: ${{ github.event.release.tag_name }}
           files: dist/*.*
           body: Latest build
           draft: false
