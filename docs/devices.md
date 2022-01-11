@@ -2,7 +2,7 @@
 ## Controllers
 ### Table of features
 
-| Generation | Master standby | Master go | LCD | Indicator lights | Cue programming | USB Link | Socket Network |
+| Generation | Master standby | Master go | LCD | Indicator lights | Cue programming | USB Link | Socket for Network |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | [v1.2](#v12) | ✓ | ✓ |  |  |  |  |
 | [v2](#v2) |  | ✓ | ✓ | ✓ |  | ✓ |  |
@@ -50,6 +50,7 @@
 |---|---|---|
 | v4.00 #1 | 11 February 2021 | For University of York DramaSoc. Channel 4 lock status is faulty, Channel 2 key switch & 3rd button is disabled, due to hardware constraints. |
 
+![v4 Controller](images/v4-ctrl.png)
 
 
 ## Outstatations
@@ -63,7 +64,8 @@
 | [v3](#v3-1) | ✓ |   ✓ |  | ✓ |  | ✓  | ✓ |  |  | ✓ | 
 | [v4](#v4)  | ✓ |  ✓ | ✓ | ✓ |  ✓ |  | |  ✓ |  | | 
 | [v5](#v5)  | ✓ |  ✓ | ✓ | ✓ |  ✓ |  ✓ | |  ✓ |  | | 
-
+| [v6](#v6)  | ✓ |  ✓ | | ✓ |  ✓ |  | | ✓ | | | 
+| [v7](#v7)  | | | | ✓ |  ✓ |  | | ✓ | ✓ | ✓ | 
 
 ### v1.2
 
@@ -83,7 +85,7 @@
 | | |
 |---|---|
 | Number produced | 0 |
-| Still in production? | Yes |
+| Still in production? | No |
 | Dates of production | |
 | Notes | *Details unknown - designed to be built with arcade buttons but never actually produced* |
 
@@ -105,7 +107,7 @@
 | | |
 |---|---|
 | Number produced | 3 |
-| Still in production? | On request |
+| Still in production? | No |
 | Dates of production | December 2018 |
 | Notes | *Portable design produced for University of York DramaSoc* | 
 
@@ -123,7 +125,7 @@
 | | |
 |---|---|
 | Number produced | 2 |
-| Still in production? | On request |
+| Still in production? | No |
 | Dates of production | December 2018 |
 | Notes | *Fixed design produced for University of York DramaSoc* | 
 
@@ -141,7 +143,7 @@
 | | |
 |---|---|
 | Number produced | 1 |
-| Still in production? | On request |
+| Still in production? | No |
 | Dates of production | October 2019 |
 | Notes | *Twin port combined for operating QLab/Multiplay from same panel* | 
 
@@ -153,3 +155,23 @@
 ![v6](images/v6%20(2).jpg)
 
 ![v6](images/v6%20(1).jpg)
+
+### v7
+
+| | |
+|---|---|
+| Number produced | 2 |
+| Still in production? | On request |
+| Dates of production | February 2021 |
+| Notes | | 
+
+| Serial Number | Date finished | Remarks |
+|---|---|---|
+| v7.0 #1 | February 2021 | For University of York DramaSoc |
+| v7.0 #2 | February 2021 | For University of York DramaSoc |
+
+![v7](images/v7.png)
+
+![v7](images/v7-2.jpg)
+
+![v7](images/v7-3.jpg)
