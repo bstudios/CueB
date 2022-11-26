@@ -7,7 +7,7 @@ import sys
 import configStore
 import json
 
-version = '1.0.0'
+version = '8.0.0'
 print("Booting version", version)
 
 '''
