@@ -1,7 +1,7 @@
 {
-  "name": "cueb2",
-  "version": "0.1.0",
-  "private": true,
+  "name": "CueB",
+  "version": "8.0.0",
+  "private": false,
   "dependencies": {
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^13.4.0",

@@ -3,7 +3,7 @@ info:
   title: CueB Network
   description: |-
     This is the API Documentation for an individual CueB outstation based on the OpenAPI 3.0 specification.
-  version: 1.0.0
+  version: 8.0.0
 tags:
   - name: general
     description: General Operations on the Device
