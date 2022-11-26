@@ -1,0 +1,31 @@
+openapi: 3.0.3
+info:
+  title: CueB Network
+  description: |-
+    This is the API Documentation for an individual CueB outstation based on the OpenAPI 3.0 specification.
+  version: 1.0.0
+tags:
+  - name: general
+    description: General Operations on the Device
+paths:
+  /about:
+    get:
+      tags:
+        - general
+      summary: Get information about the device
+      description: Update an existing pet by Id
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  version:
+                    type: string
+                    description: Semantic firmware version on device (which matches API version)
+                  config:
+                    type: object
+                    description: Current device configuration file
+              
