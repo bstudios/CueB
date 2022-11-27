@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { Navbar, SegmentedControl, Text, createStyles, ScrollArea, useMantineColorScheme, Box, Group, ActionIcon } from '@mantine/core';
+import { Navbar, SegmentedControl, Image, createStyles, ScrollArea, useMantineColorScheme, Box, Group, ActionIcon } from '@mantine/core';
 import { useViewportSize } from '@mantine/hooks';
 import { FaSun } from "@react-icons/all-files/fa/FaSun";
 import { FaMoon } from  "@react-icons/all-files/fa/FaMoon";
+import IconLandscape from './assets/icon/icon-landscape.png'
 
 const useStyles = createStyles((theme, _params, getRef) => {
   const icon = getRef('icon');
@@ -108,7 +109,7 @@ export function Navigation() {
       })}
     >
       <Group position="apart">
-        CueB v8
+        <Image src={IconLandscape} height={30} width={68} fit="contain" />
         <ActionIcon variant="default" onClick={() => toggleColorScheme()} size={30}>
           {colorScheme === 'dark' ? <FaSun /> : <FaMoon />}
         </ActionIcon>
