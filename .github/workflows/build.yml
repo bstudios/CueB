@@ -28,6 +28,7 @@ jobs:
     env:
       PUBLIC_URL: "/CueB/"
       CONTEXT: "production"
+      DISABLE_ESLINT_PLUGIN: true
     steps:
       - name: Checkout
         uses: actions/checkout@v3
