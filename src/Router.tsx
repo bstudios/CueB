@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { HashRouter, Routes, Route, Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { HashRouter, Routes, Route, Outlet, useLocation, useNavigate, Navigate } from 'react-router-dom'
 import {
 	AppShell,
 	Container,
@@ -44,7 +44,7 @@ const Router = () => {
 					</Route>
 					<Route path="setup" element={<Setup />} />
 				</Route>
-				<Route path="*" element={<div>Test</div>} />
+				<Route path="*" element={<Navigate replace to="/operate" />} />
 			</Routes>
 		</HashRouter>
 	)
