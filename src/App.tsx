@@ -2,6 +2,7 @@ import React from 'react'
 import { ColorScheme, ColorSchemeProvider, MantineProvider } from '@mantine/core'
 import Router from './Router'
 import { useColorScheme, useLocalStorage } from '@mantine/hooks'
+import { NotificationsProvider } from '@mantine/notifications'
 
 function App() {
 	const preferredColorScheme = useColorScheme()
@@ -16,7 +17,9 @@ function App() {
 	return (
 		<ColorSchemeProvider colorScheme={colorScheme} toggleColorScheme={toggleColorScheme}>
 			<MantineProvider theme={{ colorScheme }} withGlobalStyles withNormalizeCSS>
-				<Router />
+				<NotificationsProvider position="top-right">
+					<Router />
+				</NotificationsProvider>
 			</MantineProvider>
 		</ColorSchemeProvider>
 	)
