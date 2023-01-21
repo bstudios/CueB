@@ -1,28 +1,256 @@
-import React from 'react'
-import { Button, Grid, Stack, Avatar, Card, Text } from '@mantine/core'
-import { useLocalStorage } from '@mantine/hooks'
+import React, { useState, useEffect } from 'react'
+import { Button, Grid, Stack, Avatar, Card, Text, keyframes } from '@mantine/core'
+import { useElementSize, useLocalStorage } from '@mantine/hooks'
 import { ProjectDevice } from '../Devices/Device'
+import {
+	PossibleDeviceStates,
+	ProjectDeviceState,
+	useDeviceStatus,
+	useDeviceStatusDispatch,
+} from '../contexts/DeviceStatusReducer'
+import { IconCheck } from '@tabler/icons'
+import axios from 'axios'
+
+const DURATION_TO_HOLD_GO = 2000
+
+const communicateStatusToDevice = (device: ProjectDevice, state: PossibleDeviceStates) => {
+	if (device.emulated) {
+		return new Promise(resolve => {
+			// Emulate the delay of a network connection
+			setTimeout(() => {
+				resolve(true)
+			}, 100)
+		})
+	} else {
+		return axios
+			.get(`http://${device.ip}/set/`, { responseType: 'json' })
+			.then(response => {
+				return true
+			})
+			.catch(error => {
+				return false
+			})
+	}
+}
 
 const Channel = (props: { device: ProjectDevice }) => {
+	const devices = useDeviceStatus()
+	const deviceStatus = devices[props.device.ip]
+	const setDeviceStatus = useDeviceStatusDispatch()
+	useEffect(() => {
+		if (!deviceStatus) {
+			setDeviceStatus({ type: 'ADD_DEVICE', id: props.device.ip })
+		}
+	}, [deviceStatus, setDeviceStatus, props.device.ip])
+
+	if (!deviceStatus) return null
 	return (
 		<Card>
 			<Text weight={500} ta="center" mb="md">
 				{props.device.name}
 			</Text>
+			{deviceStatus.connected ? (
+				<Stack justify="flex-start" spacing="lg">
+					<Button
+						size="xl"
+						uppercase
+						radius={0}
+						fullWidth
+						type="button"
+						color="red"
+						loaderPosition="left"
+						loaderProps={{ variant: 'dots' }}
+						loading={deviceStatus.loading}
+						styles={theme =>
+							deviceStatus.state === 'await-standby'
+								? {
+										root: {
+											animation:
+												keyframes({
+													'0%, 49%': {
+														opacity: 1,
+													},
+													'50%, 100%': {
+														opacity: 0.2,
+													},
+												}) + ' 1s infinite',
+										},
+								  }
+								: deviceStatus.state !== 'acknowledged-standby'
+								? { root: { opacity: 0.5 } }
+								: {}
+						}
+						rightIcon={
+							Date.now() - deviceStatus.stateLastChanged > 5000 &&
+							deviceStatus.state === 'await-standby' ? (
+								<Avatar variant="filled" radius="xl" color="orange">
+									{Math.round((Date.now() - deviceStatus.stateLastChanged) / 1000)}s
+								</Avatar>
+							) : null
+						}
+						onClick={() => {
+							let newState: PossibleDeviceStates = 'await-standby'
+							if (
+								deviceStatus.state === 'await-standby' ||
+								deviceStatus.state === 'acknowledged-standby'
+							) {
+								newState = 'blank'
+							}
+							setDeviceStatus({ type: 'SET_DEVICE_LOADING', id: props.device.ip, newLoading: true })
+							communicateStatusToDevice(props.device, newState).then(success => {
+								setDeviceStatus({ type: 'SET_DEVICE_LOADING', id: props.device.ip, newLoading: false })
+								if (success) {
+									setDeviceStatus({ type: 'SET_DEVICE_STATE', id: props.device.ip, newState })
+								} else {
+									setDeviceStatus({
+										type: 'SET_DEVICE_CONNECTED',
+										id: props.device.ip,
+										newConnected: false,
+									})
+								}
+							})
+						}}
+					>
+						Standby
+					</Button>
+					<Button
+						rightIcon={
+							deviceStatus.preset === null ? null : (
+								<Avatar variant="filled" radius="xl" color="dark">
+									<IconCheck />
+								</Avatar>
+							)
+						}
+						size="xl"
+						uppercase
+						radius={0}
+						fullWidth
+						type="button"
+						color="orange"
+						loaderPosition="left"
+						styles={theme => (deviceStatus.preset === null ? { root: { opacity: 0.6 } } : {})}
+						onClick={() => {
+							setDeviceStatus({
+								type: 'SET_DEVICE_PRESET',
+								id: props.device.ip,
+								newPreset: deviceStatus.preset === null ? 1 : null,
+							})
+						}}
+					>
+						Preset
+					</Button>
+					<Button
+						size="xl"
+						uppercase
+						radius={0}
+						fullWidth
+						type="button"
+						color="green"
+						loading={deviceStatus.loading}
+						styles={theme => (deviceStatus.state !== 'go' ? { root: { opacity: 0.6 } } : {})}
+						loaderPosition="left"
+						loaderProps={{ variant: 'dots' }}
+						onClick={() => {
+							let newState: PossibleDeviceStates = 'go'
+							if (deviceStatus.state === 'go') {
+								newState = 'blank'
+							}
+							setDeviceStatus({ type: 'SET_DEVICE_LOADING', id: props.device.ip, newLoading: true })
+							communicateStatusToDevice(props.device, newState).then(success => {
+								setDeviceStatus({ type: 'SET_DEVICE_LOADING', id: props.device.ip, newLoading: false })
+								if (success) {
+									setDeviceStatus({ type: 'SET_DEVICE_STATE', id: props.device.ip, newState })
+									// TODO - tidy up this logic
+									if (newState === 'go') {
+										new Promise(resolve => {
+											// Wait until clearing the go state and reverting to blank
+											setTimeout(() => {
+												resolve(true)
+											}, DURATION_TO_HOLD_GO)
+										}).then(() => {
+											// Recheck the state after a delay to ensure it hasn't changed
+											if (deviceStatus.state === 'go') {
+												setDeviceStatus({
+													type: 'SET_DEVICE_LOADING',
+													id: props.device.ip,
+													newLoading: true,
+												})
+												communicateStatusToDevice(props.device, newState).then(success => {
+													setDeviceStatus({
+														type: 'SET_DEVICE_LOADING',
+														id: props.device.ip,
+														newLoading: false,
+													})
+													if (success) {
+														setDeviceStatus({
+															type: 'SET_DEVICE_STATE',
+															id: props.device.ip,
+															newState: 'blank',
+														})
+													} else {
+														setDeviceStatus({
+															type: 'SET_DEVICE_CONNECTED',
+															id: props.device.ip,
+															newConnected: false,
+														})
+													}
+												})
+											}
+										})
+									}
+								} else {
+									setDeviceStatus({
+										type: 'SET_DEVICE_CONNECTED',
+										id: props.device.ip,
+										newConnected: false,
+									})
+								}
+							})
+						}}
+					>
+						Go
+					</Button>
+				</Stack>
+			) : (
+				'Disconnected'
+			)}
+		</Card>
+	)
+}
+
+const MasterChannel = () => {
+	const devices = useDeviceStatus()
+	const setDeviceStatus = useDeviceStatusDispatch()
+	const devicesInPreset1: Array<string> = []
+	Object.keys(devices).forEach(device => {
+		if (devices[device].preset === 1 && devices[device].connected) {
+			devicesInPreset1.push(device)
+		}
+	})
+	return (
+		<Card>
+			<Text weight={500} ta="center" mb="md">
+				Master
+			</Text>
 			<Stack justify="flex-start" spacing="lg">
 				<Button
-					leftIcon={
-						<Avatar variant="filled" radius="xl" color="dark">
-							1
-						</Avatar>
-					}
 					size="xl"
 					uppercase
 					radius={0}
 					fullWidth
 					type="button"
 					color="red"
-					loaderPosition="center"
+					rightIcon={devicesInPreset1.length > 0 ? 'x' + devicesInPreset1.length : null}
+					disabled={devicesInPreset1.length < 1}
+					onClick={() => {
+						devicesInPreset1.forEach(device => {
+							setDeviceStatus({
+								type: 'SET_DEVICE_STATE',
+								id: device,
+								newState: 'await-standby',
+							})
+						})
+					}}
 				>
 					Standby
 				</Button>
@@ -33,10 +261,14 @@ const Channel = (props: { device: ProjectDevice }) => {
 					fullWidth
 					type="button"
 					color="orange"
-					loading
-					loaderPosition="center"
+					disabled={devicesInPreset1.length < 1}
+					onClick={() => {
+						setDeviceStatus({
+							type: 'CLEAR_PRESET',
+						})
+					}}
 				>
-					Preset
+					Clear
 				</Button>
 				<Button
 					size="xl"
@@ -45,8 +277,8 @@ const Channel = (props: { device: ProjectDevice }) => {
 					fullWidth
 					type="button"
 					color="green"
-					loading
-					loaderPosition="center"
+					rightIcon={devicesInPreset1.length > 0 ? 'x' + devicesInPreset1.length : null}
+					disabled={devicesInPreset1.length < 1}
 				>
 					Go
 				</Button>
@@ -56,12 +288,16 @@ const Channel = (props: { device: ProjectDevice }) => {
 }
 
 export const Operate = () => {
-	const [projectDevices, setProjectDevices] = useLocalStorage<Array<ProjectDevice>>({
+	const [projectDevices] = useLocalStorage<Array<ProjectDevice>>({
 		key: 'project-devices',
 		defaultValue: [],
 	})
+	if (projectDevices.length === 0) return <div>Setup your devices in the Devices tab</div>
 	return (
 		<Grid justify="center" columns={12} gutter="sm">
+			<Grid.Col xs={12} sm={6} md={4} lg={3} xl={2}>
+				<MasterChannel />
+			</Grid.Col>
 			{projectDevices
 				.filter(device => device.disabled === false)
 				.sort((a, b) => a.sort - b.sort)

@@ -22,6 +22,9 @@ import { FaSun } from '@react-icons/all-files/fa/FaSun'
 import { FaMoon } from '@react-icons/all-files/fa/FaMoon'
 import IconLandscape from './assets/icon/icon-landscape.png'
 
+const HEADER_HEIGHT = 70
+const FOOTER_HEIGHT = 60
+
 export const MainNav = () => {
 	const { height } = useViewportSize()
 	const theme = useMantineTheme()
@@ -40,7 +43,7 @@ export const MainNav = () => {
 			navbarOffsetBreakpoint="sm"
 			asideOffsetBreakpoint="sm"
 			header={
-				<Header height={70} p="md">
+				<Header height={HEADER_HEIGHT} p="md">
 					<div
 						style={{
 							display: 'flex',
@@ -89,12 +92,17 @@ export const MainNav = () => {
 				) : undefined
 			}
 			footer={
-				<Footer height={60} p="md">
+				<Footer height={FOOTER_HEIGHT} p="md">
 					Application footer
 				</Footer>
 			}
 		>
-			<ScrollArea style={{ height }} type="auto" offsetScrollbars scrollbarSize={20}>
+			<ScrollArea
+				style={{ height: height - (FOOTER_HEIGHT + HEADER_HEIGHT) }}
+				type="auto"
+				offsetScrollbars
+				scrollbarSize={30}
+			>
 				<Container fluid py={'sm'} px={'sm'}>
 					<Outlet />
 				</Container>

@@ -7,6 +7,19 @@ import { DiscoveredDeviceCard } from './Scan/DiscoveredDeviceCard'
 import { DiscoveredDevice, scanForDevices } from './Scan/Scan'
 import { ScanModal } from './Scan/ScanModal'
 
+const getHighestDeviceNumber = (devices: Array<ProjectDevice>, searchString: string) => {
+	const deviceNumbers = devices.map(device => {
+		if (device.name.startsWith(searchString)) {
+			const deviceNumber = device.name.match(/\d+$/)
+			if (deviceNumber) return parseInt(deviceNumber[0])
+			return 0
+		} else {
+			return 0
+		}
+	})
+	return Math.max(...deviceNumbers)
+}
+
 export const Devices = () => {
 	const [discoveredDevices, setDiscoveredDevices] = useState<Array<DiscoveredDevice>>([])
 	const [projectDevices, setProjectDevices] = useLocalStorage<Array<ProjectDevice>>({
@@ -19,11 +32,13 @@ export const Devices = () => {
 		<>
 			<Title order={1}>Project Devices</Title>
 			<Grid columns={12} my={'lg'}>
-				{projectDevices.map((device, i) => (
-					<Grid.Col xs={12} sm={6} md={4} lg={3} xl={2} key={i}>
-						<DeviceCard {...device} />
-					</Grid.Col>
-				))}
+				{projectDevices
+					.sort((a, b) => a.sort - b.sort)
+					.map((device, i) => (
+						<Grid.Col xs={12} sm={6} md={4} lg={3} xl={2} key={i}>
+							<DeviceCard {...device} />
+						</Grid.Col>
+					))}
 			</Grid>
 			<Title order={1}>Discovered Devices</Title>
 			<Grid columns={12} my={'lg'}>
@@ -38,9 +53,13 @@ export const Devices = () => {
 										ip: device.ip,
 										version: device.version,
 										type: device.type,
-										name: device.ip,
+										name: 'Device ' + (getHighestDeviceNumber(projectDevices, 'Device ') + 1),
 										disabled: false,
+										emulated: false,
 										sort: projectDevices.length,
+										config: {
+											autoAcknowledgeStandby: false,
+										},
 									},
 								])
 								setDiscoveredDevices(
@@ -51,6 +70,27 @@ export const Devices = () => {
 					</Grid.Col>
 				))}
 			</Grid>
+			<Button
+				onClick={() =>
+					setProjectDevices([
+						...projectDevices,
+						{
+							ip: 'emulator.' + (getHighestDeviceNumber(projectDevices, 'Emulator ') + 1),
+							version: 'emulator',
+							type: 'emulator',
+							name: 'Emulator ' + (getHighestDeviceNumber(projectDevices, 'Emulator ') + 1),
+							disabled: false,
+							emulated: true,
+							sort: projectDevices.length,
+							config: {
+								autoAcknowledgeStandby: true,
+							},
+						},
+					])
+				}
+			>
+				Add demo device
+			</Button>
 			<Button loading={scanningForDevices} onClick={() => setScanModalShow(true)}>
 				Scan Network
 			</Button>

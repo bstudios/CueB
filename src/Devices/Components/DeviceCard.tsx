@@ -17,8 +17,8 @@ export const DeviceCard = (props: ProjectDevice) => {
 		<Card shadow="sm" p="lg" radius="md" withBorder>
 			<Text weight={500}>{props.name}</Text>
 			<Text>{props.location}</Text>
-			<Badge variant="outline">IP: {props.ip}</Badge>
-			<Badge variant="light">Version {props.version}</Badge>
+			{!props.emulated ? <Badge variant="outline">IP: {props.ip}</Badge> : null}
+			{!props.emulated ? <Badge variant="light">Version {props.version}</Badge> : null}
 			<Menu withinPortal>
 				<Menu.Target>
 					<Button variant="light" fullWidth mt="md" radius="md">
