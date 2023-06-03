@@ -9,10 +9,8 @@ import rp2
 import time
 import json
 import os
-try:
-    import socket
-except ImportError:
-    import usocket as socket
+import socket
+import select
 from uosc.server import handle_osc
 from uosc.client import Client
 import configStore
@@ -75,24 +73,30 @@ spi=SPI(0,2_000_000, mosi=Pin(19),miso=Pin(16),sck=Pin(18))
 nic = network.WIZNET5K(spi,Pin(17),Pin(20)) #spi,cs,reset pin
 nic.active(True)
 
-def attemptInitDHCP():
-    global nic
-    try:
-        print("Attempting DHCP connection")
-        nic.ifconfig('dhcp')
-    except:
-        print("Awaiting DHCP server")
-        time.sleep(5)
-        attemptInitDHCP()
-  
-attemptInitDHCP()
+def reboot():
+    print("Rebooting")
+    machine.reset() # Hard reset equivalent to pulling the power
+    #sys.exit() #Soft reset just rebooting the virtual machine
+
+try:
+    print("Attempting DHCP connection")
+    nic.ifconfig('dhcp')
+except:
+    print("No DHCP, rebooting in 30s")
+    time.sleep(30)
+    reboot()
 
 while not nic.isconnected():
     time.sleep(1)
     print("Awaiting connection")
 
-deviceIp, deviceSubnet, deviceGateway, deviceDNS = nic.ifconfig()
-print(deviceIp, deviceSubnet, deviceGateway, deviceDNS)
+deviceIp, deviceSubnetMask, deviceGateway, deviceDnsServer = nic.ifconfig()
+deviceRoutingPrefix = (".".join(map(str, [i & m
+          for i,m in zip(map(int, deviceIp.split(".")),
+                         map(int, deviceSubnetMask.split(".")))])))
+deviceBroadcastAddress = (".".join(map(str,[(ioctet | ~moctet) & 0xff for ioctet, moctet in zip(tuple(map(int, deviceIp.split('.'))), tuple(map(int, deviceSubnetMask.split('.'))))])))
+
+print("Booted with IP " + str(deviceIp))
 
 def getUniqueId():
     # This could be something a bit like the the mac address, the idea is its unique to a particular board
@@ -103,8 +107,10 @@ def getUniqueId():
         return 'ERRRR'
 deviceUniqueId = getUniqueId()
 
+
+
 '''
-WebServer Paths
+WebServer
 '''
 defaultHeaders = {'Access-Control-Allow-Origin':'*', 'Cache-Control': 'no-cache, no-store, must-revalidate'}
 
@@ -112,6 +118,11 @@ defaultHeaders = {'Access-Control-Allow-Origin':'*', 'Cache-Control': 'no-cache,
 def handlerFuncGet(httpClient, httpResponse) :
     httpResponse.WriteResponseFile('assets/homepage.html',
                                    contentType="text/html",
+                                   headers=defaultHeaders )
+@MicroWebSrv.route('/style.css')
+def handlerFuncGet(httpClient, httpResponse) :
+    httpResponse.WriteResponseFile('assets/style.css',
+                                   contentType="text/css",
                                    headers=defaultHeaders )
 
 @MicroWebSrv.route('/about')
@@ -122,14 +133,19 @@ def handlerFuncGet(httpClient, httpResponse) :
         'uid': deviceUniqueId,
         'network': {
             'ip': deviceIp,
-            'subnet': deviceSubnet,
+            'subnetMask': deviceSubnetMask,
             'gateway': deviceGateway,
-            'dns': deviceDNS
-        }
+            'dnsServer': deviceDnsServer,
+            'routingPrefix': deviceRoutingPrefix,
+            'broadcastAddress': deviceBroadcastAddress
+        },
+        'config': {}
     }
     rtn['os'] = os.uname()
-    rtn['config'] = configStore.getConfigDict()
-    rtn['defaultConfig'] = configStore.getDefaultConfigDict()
+    configData = configStore.getConfigStructureAndDefaults()
+    for key in configData:
+        rtn['config'][key] = {'value': configStore.getConfig(key), 'name': configData[key]['name']}
+    
     httpResponse.WriteResponseOk( headers       = defaultHeaders,
                                 contentType     = "application/json",
                                 contentCharset  = "UTF-8",
@@ -143,18 +159,19 @@ def handlerFuncGet(httpClient, httpResponse) :
                                 contentCharset  = "UTF-8",
                                 content         = '{"success":true}')
     print("Deleted config - rebooting")
-    sys.exit()
+    reboot()
 
 @MicroWebSrv.route('/set/config', 'POST')
 def handlerFuncPost(httpClient, httpResponse):
     data = httpClient.ReadRequestPostedFormData()
     for key in data:
         configStore.setConfig(MicroWebSrv.HTMLEscape(str(key)),MicroWebSrv.HTMLEscape(str(data[key])))
-    print(data)
     httpResponse.WriteResponseOk( headers       = defaultHeaders,
-                            contentType     = "application/json",
+                            contentType     = "text/html",
                             contentCharset  = "UTF-8",
-                            content         = "kk")
+                            content         = "Saved, device now rebooting. <a href=\"/\">Reload</a>")
+    print("Deleted config - rebooting")
+    reboot()
 
 @MicroWebSrv.route('/set/config')
 def handlerFuncGet(httpClient, httpResponse):
@@ -163,12 +180,14 @@ def handlerFuncGet(httpClient, httpResponse):
   <html>
     <head>
       <meta charset="UTF-8" />
-      <title>Device Settings</title>
+      <link rel="stylesheet" href="/style.css">
+      <title>Settings</title>
     </head>
     <body>
+        <h1>Settings</h1>
         <form method="POST">
           <label>Device ID</label><br />
-          <input type="text" readonly value="%s"><br />
+          <input type="text" readonly value="%s" disabled><br />
   """ % MicroWebSrv.HTMLEscape(str(deviceUniqueId))
 
   configStructure = configStore.getConfigStructureAndDefaults()
@@ -181,9 +200,10 @@ def handlerFuncGet(httpClient, httpResponse):
                  MicroWebSrv.HTMLEscape(str(configStore.getConfig(key))),
             )
   
-  key += """\
-        <br /><br /><input type="submit" value="Save & Reboot">
+  content += """\
+        <br /><br /><input type="submit" value="Save & Reboot" class="button" style="background-color: green;">
                 </form>
+                <br /><br /><a href="/" class="button" type="button" style="background-color: grey;">&lt; Back</a><a href="/set/reset" class="button" type="button" style="background-color: red;">Factory Reset</a>
             </body>
           </html>
     """
@@ -196,20 +216,30 @@ mws = MicroWebSrv([], port=80, bindIP='0.0.0.0', webPath="/flash/www")
 mws.SetNotFoundPageUrl("/")
 mws.Start(threaded=True) # Starts server in a new thread
 
-#while True:
-#    if (not nic.isconnected()):
-#        print("Lost Network - rebooting")
-#        sys.exit()
-#    else:
-#        time.sleep(1)
+'''
+OSC
+'''
 
-def newMessage(timetag, data):
+lastBroadcast = time.ticks_ms()
+def broadcastState():
+    global lastBroadcast
+    if (time.ticks_diff(time.ticks_ms(), lastBroadcast) > 100):
+        osc.send("/cueb/device/state", deviceUniqueId, configStore.getConfig("name"))
+        print(time.time())
+        lastBroadcast = time.ticks_ms()
+
+def oscMessageRecieved(timetag, data):
     oscaddr, tags, args, src = data
     print(oscaddr)
+    print(tags)
     print(args)
     print(src)
     
     osc.send("/theatrechat/message/2", args[0], args[1])
+    
+'''
+Main Loop
+'''
 
 MAX_DGRAM_SIZE = 1472
 def run_server(saddr, port, handler=handle_osc):

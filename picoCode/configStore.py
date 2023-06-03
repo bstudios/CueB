@@ -7,14 +7,13 @@ def getConfigStructureAndDefaults():
             "name": "Device Name"
         },
         "osc-sendport": {
-            "default": "27900",
+            "default": "53000",
             "name": "OSC Send Port"
         },
         "osc-recieveport": {
-            "default": "27900",
+            "default": "53001",
             "name": "OSC Recieve Port"
         },
-        
     }
 
 def getConfigDict():
@@ -52,7 +51,7 @@ def getConfig(key):
         pass
     
     defaultConfigDict = getConfigStructureAndDefaults()
-    return str(defaultConfigDict[key])
+    return str(defaultConfigDict[key]['default'])
 
 def deleteConfig():
     f = open("config.json", "w")
