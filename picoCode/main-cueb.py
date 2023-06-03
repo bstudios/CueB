@@ -246,6 +246,7 @@ def run_server(saddr, port, handler=handle_osc):
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     ai = socket.getaddrinfo(saddr, port)[0]
+    sock.setblocking(False)
     sock.bind(ai[-1])
     print("Listening for OSC messages on %s:%i.", saddr, port)
     osc.send("/theatrechat/message/1", 'User10','test')
