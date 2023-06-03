@@ -9,3 +9,10 @@ Download the uf2 image from [Wiznet/RP2040-HAT-MicroPython/releases](https://git
 ## Installing Thonny
 
 You sadly have to install Thonny 
+
+## Libraries
+
+Libraries are in the libs folder. You can copy them to the Pico using Thonny
+
+- [microWebSrv](https://github.com/jczic/MicroWebSrv)
+- [uosc](https://github.com/SpotlightKid/micropython-osc)
