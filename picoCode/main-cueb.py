@@ -255,12 +255,12 @@ def run_server(saddr, port, handler=handle_osc):
             print("RECV %i bytes",
                                     len(data))
             print(caddr)
-            handler(data, caddr, dispatch=newMessage)
+            handler(data, caddr, dispatch=oscMessageRecieved)
     finally:
         sock.close()
 
-osc = Client('192.168.1.255', int(27900))
-run_server('0.0.0.0', int(27900))
+osc = Client(deviceBroadcastAddress, int(configStore.getConfig("osc-sendport")))
+run_server(deviceRoutingPrefix, int(configStore.getConfig("osc-recieveport")))
 
 '''
 for i in range(len(leds)):
