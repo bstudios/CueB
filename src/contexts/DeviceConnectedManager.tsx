@@ -42,16 +42,15 @@ export const DeviceConnectedManager = ({ children }: { children?: ReactNode }) =
 							}
 						})
 				} else {
-					setLastCheckedDevice({
-						...lastCheckedDevice,
-						[device.ip]: Date.now(), //TODO change this to a value given to you by the device, which enables you to check if buttons have been pressed by asking when you last checked.
-					})
+					// Device is emulated, so simulate some of the behaviour
 					setDeviceStatus({
 						type: 'SET_DEVICE_CONNECTED',
 						id: device.ip,
-						newConnected: Math.random() > 0.01,
+						newConnected: Math.random() > 0.01, // TODO remove. Simulate some of the emulators dropping offline randomly
 					})
 					if (deviceStatus[device.ip]?.state === 'await-standby') {
+						// The device is awaiting standby, so simulate it acknowledging standby
+						/* 
 						setTimeout(() => {
 							if (deviceStatus[device.ip]?.state === 'await-standby') {
 								setDeviceStatus({
@@ -60,7 +59,7 @@ export const DeviceConnectedManager = ({ children }: { children?: ReactNode }) =
 									newState: 'acknowledged-standby',
 								})
 							}
-						}, Math.random() * 2000)
+						}, Math.random() * 2000) */
 					}
 				}
 			})

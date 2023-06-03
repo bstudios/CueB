@@ -33,7 +33,26 @@ const communicateStatusToDevice = (device: ProjectDevice, state: PossibleDeviceS
 	}
 }
 
+const secondsToTime = (milliseconds: number) => {
+	const secs = milliseconds / 1000
+	console.log(milliseconds)
+	const hours = Math.floor(secs / (60 * 60))
+	const minutes = Math.floor((secs % (60 * 60)) / 60) - hours * 60
+	const seconds = Math.floor(secs % 60) - hours * 60 * 60 - minutes * 60
+	if (hours === 0 && minutes === 0) return seconds + 's'
+	if (hours === 0) return minutes + 'm' + seconds + 's'
+	else return hours + 'h' + minutes + 'm'
+}
+
 const Channel = (props: { device: ProjectDevice }) => {
+	const [time, setTime] = useState(Date.now())
+	useEffect(() => {
+		const interval = setInterval(() => setTime(Date.now()), 1000)
+		return () => {
+			clearInterval(interval)
+		}
+	}, [])
+
 	const devices = useDeviceStatus()
 	const deviceStatus = devices[props.device.ip]
 	const setDeviceStatus = useDeviceStatusDispatch()
@@ -81,10 +100,13 @@ const Channel = (props: { device: ProjectDevice }) => {
 								: {}
 						}
 						rightIcon={
-							Date.now() - deviceStatus.stateLastChanged > 5000 &&
 							deviceStatus.state === 'await-standby' ? (
 								<Avatar variant="filled" radius="xl" color="orange">
-									{Math.round((Date.now() - deviceStatus.stateLastChanged) / 1000)}s
+									{secondsToTime(time - deviceStatus.stateLastChanged)}
+								</Avatar>
+							) : deviceStatus.state === 'acknowledged-standby' ? (
+								<Avatar variant="filled" radius="xl" color="green">
+									<IconCheck />
 								</Avatar>
 							) : null
 						}
