@@ -110,16 +110,14 @@ defaultHeaders = {'Access-Control-Allow-Origin':'*', 'Cache-Control': 'no-cache,
 
 @MicroWebSrv.route('/')
 def handlerFuncGet(httpClient, httpResponse) :
-    httpResponse.WriteResponseFile('homepage.html',
+    httpResponse.WriteResponseFile('assets/homepage.html',
                                    contentType="text/html",
                                    headers=defaultHeaders )
 
 @MicroWebSrv.route('/about')
 def handlerFuncGet(httpClient, httpResponse) :
-    config = configStore.getConfigDict()
     rtn = {
         'version': str(version),
-        'config': config,
         'type': 'cueb',
         'uid': deviceUniqueId,
         'network': {
@@ -130,12 +128,14 @@ def handlerFuncGet(httpClient, httpResponse) :
         }
     }
     rtn['os'] = os.uname()
+    rtn['config'] = configStore.getConfigDict()
+    rtn['defaultConfig'] = configStore.getDefaultConfigDict()
     httpResponse.WriteResponseOk( headers       = defaultHeaders,
                                 contentType     = "application/json",
                                 contentCharset  = "UTF-8",
                                 content         = json.dumps(rtn))
 
-@MicroWebSrv.route('/reset')
+@MicroWebSrv.route('/set/reset')
 def handlerFuncGet(httpClient, httpResponse) :
     configStore.deleteConfig()
     httpResponse.WriteResponseOk( headers       = defaultHeaders,
@@ -148,6 +148,8 @@ def handlerFuncGet(httpClient, httpResponse) :
 @MicroWebSrv.route('/set/config', 'POST')
 def handlerFuncPost(httpClient, httpResponse):
     data = httpClient.ReadRequestPostedFormData()
+    for key in data:
+        configStore.setConfig(MicroWebSrv.HTMLEscape(str(key)),MicroWebSrv.HTMLEscape(str(data[key])))
     print(data)
     httpResponse.WriteResponseOk( headers       = defaultHeaders,
                             contentType     = "application/json",
@@ -161,22 +163,34 @@ def handlerFuncGet(httpClient, httpResponse):
   <html>
     <head>
       <meta charset="UTF-8" />
-      <title>TEST POST</title>
+      <title>Device Settings</title>
     </head>
     <body>
-      <h1>TEST POST</h1>
-      Firstname = %s<br />
-      Lastname = %s<br />
-    </body>
-  </html>
-  """ % ( MicroWebSrv.HTMLEscape(str("test")),
-          MicroWebSrv.HTMLEscape(str("test2")))
+        <form method="POST">
+          <label>Device ID</label><br />
+          <input type="text" readonly value="%s"><br />
+  """ % MicroWebSrv.HTMLEscape(str(deviceUniqueId))
+
+  configStructure = configStore.getConfigStructureAndDefaults()
+  for key in configStructure:
+      content += """\
+            <label>%s</label><br />
+            <input type="text" name="%s" value="%s" required minlength="1"><br />
+         """ % ( configStructure[key]['name'],
+                 key,
+                 MicroWebSrv.HTMLEscape(str(configStore.getConfig(key))),
+            )
   
+  key += """\
+        <br /><br /><input type="submit" value="Save & Reboot">
+                </form>
+            </body>
+          </html>
+    """
   httpResponse.WriteResponseOk( headers         = defaultHeaders,
                                 contentType     = "text/html",
                                 contentCharset  = "UTF-8",
                                 content         = content)
-  
 
 mws = MicroWebSrv([], port=80, bindIP='0.0.0.0', webPath="/flash/www")
 mws.SetNotFoundPageUrl("/")
