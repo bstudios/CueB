@@ -9,11 +9,8 @@
     "plugin:@typescript-eslint/eslint-recommended",
     "plugin:@typescript-eslint/recommended",
     "plugin:import/recommended",
-    "plugin:import/typescript",
-    "plugin:import/warnings",
-    "plugin:react/recommended",
-    "plugin:react-hooks/recommended",
-    "plugin:prettier/recommended"
+    "plugin:import/electron",
+    "plugin:import/typescript"
   ],
   "plugins": ["unused-imports", "@typescript-eslint/eslint-plugin", "eslint-plugin-tsdoc"],
   "parser": "@typescript-eslint/parser",
