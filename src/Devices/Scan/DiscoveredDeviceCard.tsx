@@ -21,7 +21,7 @@ export const DiscoveredDeviceCard = (props: {
 					if (result) {
 						showNotification({
 							message: 'Blinking lights on ' + props.device.ip,
-							disallowClose: true,
+							withCloseButton: false,
 							autoClose: 5000,
 						})
 					} else {

@@ -1,9 +1,9 @@
 import React from 'react'
-import { Navbar, createStyles, ScrollArea, Avatar } from '@mantine/core'
+import { Navbar, createStyles, ScrollArea, Avatar, getStylesRef } from '@mantine/core'
 import { Link, useParams } from 'react-router-dom'
 
-const useStyles = createStyles((theme, _params, getRef) => {
-	const icon = getRef('icon')
+const useStyles = createStyles((theme, _params) => {
+	const icon = getStylesRef('icon')
 
 	return {
 		cue: {

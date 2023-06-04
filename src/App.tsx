@@ -2,8 +2,8 @@ import React from 'react'
 import { ColorScheme, ColorSchemeProvider, MantineProvider } from '@mantine/core'
 import Router from './Router'
 import { useColorScheme, useLocalStorage } from '@mantine/hooks'
-import { NotificationsProvider } from '@mantine/notifications'
 import { DeviceStatusProvider } from './contexts/DeviceStatusReducer'
+import { Notifications } from '@mantine/notifications'
 
 function App() {
 	const preferredColorScheme = useColorScheme()
@@ -16,13 +16,13 @@ function App() {
 		setColorScheme(value || (colorScheme === 'dark' ? 'light' : 'dark'))
 
 	return (
+		TODO https://trpc.io/docs/reactjs/setup
 		<ColorSchemeProvider colorScheme={colorScheme} toggleColorScheme={toggleColorScheme}>
 			<MantineProvider theme={{ colorScheme }} withGlobalStyles withNormalizeCSS>
-				<NotificationsProvider position="top-right">
+				  <Notifications />
 					<DeviceStatusProvider>
 						<Router />
 					</DeviceStatusProvider>
-				</NotificationsProvider>
 			</MantineProvider>
 		</ColorSchemeProvider>
 	)

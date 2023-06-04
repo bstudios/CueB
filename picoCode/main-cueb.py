@@ -221,6 +221,51 @@ async def route_about(request, response):
     await response.start_html()
     await response.send(page)
 
+@app.route('/config')
+async def route_config(request, response):
+    #formData = await request.read_parse_form_data()
+    #formData = await request.read_request_line()
+    '''
+    print(formData)
+    if (len(formData) > 0):
+        for key in formData:
+            configStore.setConfig(str(key),str(data[key]))
+        reboot()
+    '''
+    content = """\
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="UTF-8" />
+          <link rel="stylesheet" href="/style.css">
+          <title>Settings</title>
+        </head>
+        <body>
+            <h1>Settings</h1>
+            <form method="GET">
+              <label>Device ID</label><br />
+              <input type="text" readonly value="%s" disabled><br />
+      """ % str(deviceUniqueId)
+    configStructure = configStore.getConfigStructureAndDefaults()
+    for key in configStructure:
+        content += """\
+            <label>%s</label><br />
+            <input type="text" name="%s" value="%s" required minlength="1"><br />
+            """ % ( configStructure[key]['name'],
+                    key,
+                    str(configStore.getConfig(key)),
+            )
+
+    content += """\
+        <br /><br /><input type="submit" value="Save & Reboot" class="button" style="background-color: green;">
+                </form>
+                <br /><br /><a href="/" class="button" type="button" style="background-color: grey;">&lt; Back</a><a href="/set/reset" class="button" type="button" style="background-color: red;">Factory Reset</a>
+            </body>
+            </html>
+    """
+    await response.start_html()
+    await response.send(content)
+  
 app.run(host='0.0.0.0', port=80, loop_forever=False)
 
 

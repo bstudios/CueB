@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+		"jsx": "react-jsx",
     "target": "ES6",
     "allowJs": true,
     "module": "commonjs",
@@ -8,6 +9,8 @@
     "noImplicitAny": true,
     "sourceMap": true,
     "baseUrl": ".",
+    "allowJs": false,
+    "strict": true,
     "outDir": "dist",
     "moduleResolution": "node",
     "resolveJsonModule": true,
