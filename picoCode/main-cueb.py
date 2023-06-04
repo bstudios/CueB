@@ -1,7 +1,7 @@
 import sys
 sys.path.append('libs/')
 from microWebSrv import MicroWebSrv
-from machine import Pin,SPI
+from machine import Pin,SPI,Timer
 import machine
 import ubinascii
 import network
@@ -125,8 +125,7 @@ def handlerFuncGet(httpClient, httpResponse) :
                                    contentType="text/css",
                                    headers=defaultHeaders )
 
-@MicroWebSrv.route('/about')
-def handlerFuncGet(httpClient, httpResponse) :
+def aboutJSONRoute():
     rtn = {
         'version': str(version),
         'type': 'cueb',
@@ -141,15 +140,43 @@ def handlerFuncGet(httpClient, httpResponse) :
         },
         'config': {}
     }
-    rtn['os'] = os.uname()
+    rtn['os'] = str(os.uname())
     configData = configStore.getConfigStructureAndDefaults()
     for key in configData:
         rtn['config'][key] = {'value': configStore.getConfig(key), 'name': configData[key]['name']}
-    
+    return rtn
+
+@MicroWebSrv.route('/about/json')
+def handlerFuncGet(httpClient, httpResponse) :
+    rtn = aboutJSONRoute()
     httpResponse.WriteResponseOk( headers       = defaultHeaders,
                                 contentType     = "application/json",
                                 contentCharset  = "UTF-8",
                                 content         = json.dumps(rtn))
+
+@MicroWebSrv.route('/about')
+def handlerFuncGet(httpClient, httpResponse) :
+    aboutData = aboutJSONRoute()
+    page = """\
+    <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="UTF-8" />
+          <link rel="stylesheet" href="/style.css">
+          <title>About Device</title>
+        </head>
+        <body>
+            <pre id="json">%s</pre>
+            <script>
+                document.getElementById("json").textContent = JSON.stringify(JSON.parse(document.getElementById("json").textContent), undefined, 4);
+            </script>
+        </body>
+    </html>        
+    """ % json.dumps(aboutData)
+    httpResponse.WriteResponseOk( headers       = defaultHeaders,
+                                contentType     = "text/html",
+                                contentCharset  = "UTF-8",
+                                content         = page)
 
 @MicroWebSrv.route('/set/reset')
 def handlerFuncGet(httpClient, httpResponse) :
@@ -215,18 +242,16 @@ def handlerFuncGet(httpClient, httpResponse):
 mws = MicroWebSrv([], port=80, bindIP='0.0.0.0', webPath="/flash/www")
 mws.SetNotFoundPageUrl("/")
 mws.Start(threaded=True) # Starts server in a new thread
+print("Webserver Started")
 
 '''
 OSC
 '''
 
-lastBroadcast = time.ticks_ms()
-def broadcastState():
-    global lastBroadcast
-    if (time.ticks_diff(time.ticks_ms(), lastBroadcast) > 100):
-        osc.send("/cueb/device/state", deviceUniqueId, configStore.getConfig("name"))
-        print(time.time())
-        lastBroadcast = time.ticks_ms()
+
+def broadcastState(ref):
+    #osc.send("/cueb/device/state", deviceUniqueId, configStore.getConfig("name"))
+    pass
 
 def oscMessageRecieved(timetag, data):
     oscaddr, tags, args, src = data
@@ -235,10 +260,17 @@ def oscMessageRecieved(timetag, data):
     print(args)
     print(src)
     
-    osc.send("/theatrechat/message/2", args[0], args[1])
+    #osc.send("/theatrechat/message/2", args[0], args[1])
     
 '''
 Main Loop
+'''
+'''
+TODO
+- Buttons with hardware interrupts
+- Set LEDs
+- Broadcast state all the time to keep clients in sync with the uid
+- Reply with config/name etc when requested
 '''
 
 MAX_DGRAM_SIZE = 1472
@@ -248,7 +280,7 @@ def run_server(saddr, port, handler=handle_osc):
     ai = socket.getaddrinfo(saddr, port)[0]
     sock.setblocking(True)
     sock.bind(ai[-1])
-    print("Listening for OSC messages on %s:%i.", saddr, port)
+    print("Listening for OSC messages")
     osc.send("/theatrechat/message/1", 'User10','test')
     try:
         while True:
@@ -259,6 +291,9 @@ def run_server(saddr, port, handler=handle_osc):
             handler(data, caddr, dispatch=oscMessageRecieved)
     finally:
         sock.close()
+        
+#tim = Timer(period=5000, mode=Timer.ONE_SHOT, callback=lambda t:print(1))
+#tim2 = Timer(period=1000, mode=Timer.PERIODIC, callback=broadcastState)
 
 osc = Client(deviceBroadcastAddress, int(configStore.getConfig("osc-sendport")))
 run_server(deviceRoutingPrefix, int(configStore.getConfig("osc-recieveport")))
