@@ -108,9 +108,8 @@ def LEDOff(ledid):
 for i in range(len(leds)):
     leds[i]['var'] = Pin(leds[i]['pin'], Pin.OUT)
     leds[i]['status'] = True
+    leds[i]['flash'] = False
     leds[i]['var'].high()
-    leds[i]['flash'] = True
-    asyncio.create_task(flashLEDRunner(i))
 
 '''
 Init W5x00 chip
