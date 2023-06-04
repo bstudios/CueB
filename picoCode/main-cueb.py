@@ -22,8 +22,9 @@ except ImportError:
     import uselect as select
 from uosc.server import handle_osc
 from uosc.client import Client
-import configStore
+from aswitch import Pushbutton, Delay_ms
 
+import configStore
 
 '''
 CONFIG
@@ -41,40 +42,75 @@ Setup Buttons & LEDs
 '''
 buttons = [{
                 'pin': 10,
-                'name': "Test",
-                'lastPressed': time.time(),
-                'lastReleased': time.time(),
-                'status': False
+                'name': "Test"
             },{
                 'pin': 11,
-                'name': "Test2",
-                'lastPressed':time.time(),
-                'lastReleased': time.time(),
-                'status': False
+                'name': "Test2"
             }
         ]
 leds = [{
             'pin': 5,
             'name': "Test3",
-            'flashFrequency': 0
+            'flashFrequency': 250,
         },{
             'pin': 13,
             'name': "Test3",
-            'flashFrequency': 0
+            'flashFrequency': 250
         }
     ]
 
+def buttonPress(data):
+    print("Button press", data)
+def buttonRelease(data):
+    print("Button release", data)
+def buttonLong(data):
+    print("Button long", data)
+def buttonDoubleClick(data):
+    print("Button double click", data)
+
+# https://github.com/peterhinch/micropython-async/blob/master/v2/DRIVERS.md
 for i in range(len(buttons)):
     buttons[i]['var'] = Pin(buttons[i]['pin'], Pin.IN, Pin.PULL_UP)
+    buttons[i]['tracker'] = Pushbutton(pin=buttons[i]['var'],suppress=True)
+    buttons[i]['tracker'].press_func(buttonPress, (buttons[i]['name'],))
+    buttons[i]['tracker'].double_func(buttonDoubleClick, (buttons[i]['name'],))
+    buttons[i]['tracker'].long_func(buttonLong, (buttons[i]['name'],))
+    buttons[i]['tracker'].release_func(buttonRelease, (buttons[i]['name'],))
     if (buttons[i]['var'].value() == 1):
         buttons[i]['status'] = True
     else:
         buttons[i]['status'] = False
 
+def flashLEDRunner(ledid):
+    while leds[ledid]['flash']:
+        if (leds[ledid]['status']):
+            leds[ledid]['status'] = False
+            leds[ledid]['var'].low()
+        else:
+            leds[ledid]['status'] = True
+            leds[ledid]['var'].high()
+        await asyncio.sleep_ms(leds[ledid]['flashFrequency'])
+
+def LEDFlash(ledid):
+    leds[i]['flash'] = True
+    asyncio.create_task(flashLEDRunner(ledid))
+
+def LEDOn(ledid):
+    leds[ledid]['flash'] = False
+    leds[ledid]['status'] = True
+    leds[ledid]['var'].high()
+
+def LEDOff(ledid):
+    leds[ledid]['flash'] = False
+    leds[ledid]['status'] = False
+    leds[ledid]['var'].low()
+
 for i in range(len(leds)):
     leds[i]['var'] = Pin(leds[i]['pin'], Pin.OUT)
+    leds[i]['status'] = True
     leds[i]['var'].high()
-
+    leds[i]['flash'] = True
+    asyncio.create_task(flashLEDRunner(i))
 
 '''
 Init W5x00 chip
@@ -188,6 +224,8 @@ async def route_about(request, response):
 
 app.run(host='0.0.0.0', port=80, loop_forever=False)
 
+
+
 '''
 OSC
 '''
@@ -223,9 +261,18 @@ async def oscServer(host, port, cb, **params):
     sock.close()
     print("UDPServer shutdown")
 
-async def broadcastState(text="None"):
+
+    
+
+def broadcastState():
+    while True:
+        await asyncio.sleep_ms(100)
+        oscClient.send("/theatrechat/message/2", deviceUniqueId, "state")
+
+async def sendMessage(text="None"):
     oscClient.send("/theatrechat/message/2", deviceUniqueId, text)
 
+asyncio.create_task(broadcastState())
 
 async def handle_request(sock, data, caddr, **params):
     handle_osc(data, caddr, **params)
@@ -236,10 +283,13 @@ def oscMessageRecieved(timetag, data):
     print(tags)
     print(args)
     print(src)
-    asyncio.create_task(broadcastState(args[1]))
-
+    asyncio.create_task(sendMessage(args[1]))
 
 oscClient = Client(deviceBroadcastAddress, int(configStore.getConfig("osc-sendport")))
+
+'''
+    MAIN LOOP
+'''
 
 try:
     asyncio.run(oscServer(deviceRoutingPrefix, int(configStore.getConfig("osc-recieveport")), handle_request, dispatch=oscMessageRecieved))
@@ -247,24 +297,7 @@ except KeyboardInterrupt:
     pass
 '''
 TODO
-- Buttons with hardware interrupts
 - Set LEDs
 - Broadcast state all the time to keep clients in sync with the uid
 - Reply with config/name etc when requested
-'''
-
-'''
-for i in range(len(leds)):
-    if (leds[i]['name'] == str(routeArgs['ledtoset'])):
-        if (str(routeArgs['statustoset']) == 'on' and str(routeArgs['flashfreq']) == '0'):
-            leds[i]['var'].high()
-        elif (str(routeArgs['statustoset']) == 'off' and str(routeArgs['flashfreq']) == '0'):
-            leds[i]['var'].low()
-        elif (str(routeArgs['statustoset']) == 'flash'):
-            # Flash
-            leds[i]['var'].low()
-        else:
-            break
-        response = '{"success":true}'
-        break
 '''

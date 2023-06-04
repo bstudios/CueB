@@ -16,3 +16,4 @@ Libraries are in the libs folder. You can copy them to the Pico using Thonny
 
 - [tinyweb](https://github.com/belyalov/tinyweb)
 - [uosc](https://github.com/SpotlightKid/micropython-osc)
+- [asyncio](https://github.com/peterhinch/micropython-async)
