@@ -24,6 +24,7 @@ from uosc.server import handle_osc
 from uosc.client import Client
 import configStore
 
+
 '''
 CONFIG
 '''
@@ -117,24 +118,34 @@ def getUniqueId():
 deviceUniqueId = getUniqueId()
 
 
-
 '''
 WebServer
 '''
-defaultHeaders = {'Access-Control-Allow-Origin':'*', 'Cache-Control': 'no-cache, no-store, must-revalidate'}
 
-@MicroWebSrv.route('/')
-def handlerFuncGet(httpClient, httpResponse) :
-    httpResponse.WriteResponseFile('assets/homepage.html',
-                                   contentType="text/html",
-                                   headers=defaultHeaders )
-@MicroWebSrv.route('/style.css')
-def handlerFuncGet(httpClient, httpResponse) :
-    httpResponse.WriteResponseFile('assets/style.css',
-                                   contentType="text/css",
-                                   headers=defaultHeaders )
+import tinyweb
 
-def aboutJSONRoute():
+# Create web server application
+app = tinyweb.webserver(request_timeout=3, max_concurrency=1)
+
+
+# Index page
+@app.route('/')
+async def route_index(request, response):
+    await response.send_file('assets/homepage.html',content_type="text/html",max_age=31536000)
+
+@app.route('/style.css')
+async def route_style(request, response):
+    await response.send_file('assets/style.css',content_type="text/css",max_age=31536000)
+
+@app.catchall()
+async def route_404(request, response):
+    await response.redirect('/')
+
+deviceCpuTemp = machine.ADC(4)
+@app.route('/about')
+async def route_about(request, response):
+    tempReading = deviceCpuTemp.read_u16() * (3.3 / 65535)
+    temperature = 27 - (tempReading - 0.706)/0.001721
     rtn = {
         'version': str(version),
         'type': 'cueb',
@@ -147,25 +158,15 @@ def aboutJSONRoute():
             'routingPrefix': deviceRoutingPrefix,
             'broadcastAddress': deviceBroadcastAddress
         },
+        'cpuTempDegrees': temperature,
         'config': {}
     }
     rtn['os'] = str(os.uname())
     configData = configStore.getConfigStructureAndDefaults()
     for key in configData:
         rtn['config'][key] = {'value': configStore.getConfig(key), 'name': configData[key]['name']}
-    return rtn
+    rtn = json.dumps(rtn)
 
-@MicroWebSrv.route('/about/json')
-def handlerFuncGet(httpClient, httpResponse) :
-    rtn = aboutJSONRoute()
-    httpResponse.WriteResponseOk( headers       = defaultHeaders,
-                                contentType     = "application/json",
-                                contentCharset  = "UTF-8",
-                                content         = json.dumps(rtn))
-
-@MicroWebSrv.route('/about')
-def handlerFuncGet(httpClient, httpResponse) :
-    aboutData = aboutJSONRoute()
     page = """\
     <!DOCTYPE html>
       <html>
@@ -181,77 +182,11 @@ def handlerFuncGet(httpClient, httpResponse) :
             </script>
         </body>
     </html>        
-    """ % json.dumps(aboutData)
-    httpResponse.WriteResponseOk( headers       = defaultHeaders,
-                                contentType     = "text/html",
-                                contentCharset  = "UTF-8",
-                                content         = page)
+    """ % rtn
+    await response.start_html()
+    await response.send(page)
 
-@MicroWebSrv.route('/set/reset')
-def handlerFuncGet(httpClient, httpResponse) :
-    configStore.deleteConfig()
-    httpResponse.WriteResponseOk( headers       = defaultHeaders,
-                                contentType     = "application/json",
-                                contentCharset  = "UTF-8",
-                                content         = '{"success":true}')
-    print("Deleted config - rebooting")
-    reboot()
-
-@MicroWebSrv.route('/set/config', 'POST')
-def handlerFuncPost(httpClient, httpResponse):
-    data = httpClient.ReadRequestPostedFormData()
-    for key in data:
-        configStore.setConfig(MicroWebSrv.HTMLEscape(str(key)),MicroWebSrv.HTMLEscape(str(data[key])))
-    httpResponse.WriteResponseOk( headers       = defaultHeaders,
-                            contentType     = "text/html",
-                            contentCharset  = "UTF-8",
-                            content         = "Saved, device now rebooting. <a href=\"/\">Reload</a>")
-    print("Deleted config - rebooting")
-    reboot()
-
-@MicroWebSrv.route('/set/config')
-def handlerFuncGet(httpClient, httpResponse):
-  content   = """\
-  <!DOCTYPE html>
-  <html>
-    <head>
-      <meta charset="UTF-8" />
-      <link rel="stylesheet" href="/style.css">
-      <title>Settings</title>
-    </head>
-    <body>
-        <h1>Settings</h1>
-        <form method="POST">
-          <label>Device ID</label><br />
-          <input type="text" readonly value="%s" disabled><br />
-  """ % MicroWebSrv.HTMLEscape(str(deviceUniqueId))
-
-  configStructure = configStore.getConfigStructureAndDefaults()
-  for key in configStructure:
-      content += """\
-            <label>%s</label><br />
-            <input type="text" name="%s" value="%s" required minlength="1"><br />
-         """ % ( configStructure[key]['name'],
-                 key,
-                 MicroWebSrv.HTMLEscape(str(configStore.getConfig(key))),
-            )
-  
-  content += """\
-        <br /><br /><input type="submit" value="Save & Reboot" class="button" style="background-color: green;">
-                </form>
-                <br /><br /><a href="/" class="button" type="button" style="background-color: grey;">&lt; Back</a><a href="/set/reset" class="button" type="button" style="background-color: red;">Factory Reset</a>
-            </body>
-          </html>
-    """
-  httpResponse.WriteResponseOk( headers         = defaultHeaders,
-                                contentType     = "text/html",
-                                contentCharset  = "UTF-8",
-                                content         = content)
-
-mws = MicroWebSrv([], port=80, bindIP='0.0.0.0', webPath="/flash/www")
-mws.SetNotFoundPageUrl("/")
-mws.Start(threaded=True) # Starts server in a new thread
-print("Webserver Started")
+app.run(host='0.0.0.0', port=80, loop_forever=False)
 
 '''
 OSC
@@ -259,12 +194,7 @@ OSC
 
 MAX_DGRAM_SIZE = 1472
 async def oscServer(host, port, cb, **params):
-    # bind instance attributes to local vars
-    interval = 0.0
-    maxsize = MAX_DGRAM_SIZE
-    timeout = 1
-
-    print("Starting UDP server @ (%s, %s)", host, port)
+    print("Starting UDP server")
     ai = socket.getaddrinfo(host, port)[0]  # blocking!
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.setblocking(False)
@@ -277,21 +207,21 @@ async def oscServer(host, port, cb, **params):
     print("Entering polling loop...")
     while True:
         try:
-            for res in poll(timeout):
+            for res in poll(1):
                 if res[1] & (select.POLLERR | select.POLLHUP):
                     print("UDPServer.serve: unexpected socket error.")
                     break
                 elif res[1] & select.POLLIN:
-                    buf, addr = sock.recvfrom(maxsize)
+                    buf, addr = sock.recvfrom(MAX_DGRAM_SIZE)
                     asyncio.create_task(cb(res[0], buf, addr, **params))
-            await asyncio.sleep(interval)
+            await asyncio.sleep(0.0)
         except asyncio.CancelledError:
             print("UDPServer.serve task cancelled.")
             break
 
     # Shutdown server
     sock.close()
-    print("Bye!")
+    print("UDPServer shutdown")
 
 async def broadcastState(text="None"):
     oscClient.send("/theatrechat/message/2", deviceUniqueId, text)

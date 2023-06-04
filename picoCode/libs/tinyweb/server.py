@@ -475,16 +475,16 @@ class webserver:
                 try:
                     await resp.error(500)
                 except Exception as e:
-                    log.exc(e, "")
+                    log.exception(e, "")
         except HTTPException as e:
             try:
                 await resp.error(e.code)
             except Exception as e:
-                log.exc(e)
+                log.exception(e)
         except Exception as e:
             # Unhandled expection in user's method
             log.error(req.path.decode())
-            log.exc(e, "")
+            log.exception(e, "")
             try:
                 await resp.error(500)
                 # Send exception info if desired
