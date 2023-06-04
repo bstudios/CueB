@@ -1,6 +1,5 @@
 import sys
 sys.path.append('libs/')
-from microWebSrv import MicroWebSrv
 from machine import Pin,SPI,Timer
 import machine
 import ubinascii
@@ -9,8 +8,18 @@ import rp2
 import time
 import json
 import os
-import socket
-import select
+try:
+    import asyncio
+except ImportError:
+    import uasyncio as asyncio
+try:
+    import socket
+except ImportError:
+    import usocket as socket
+try:
+    import select
+except ImportError:
+    import uselect as select
 from uosc.server import handle_osc
 from uosc.client import Client
 import configStore
@@ -248,10 +257,48 @@ print("Webserver Started")
 OSC
 '''
 
+MAX_DGRAM_SIZE = 1472
+async def oscServer(host, port, cb, **params):
+    # bind instance attributes to local vars
+    interval = 0.0
+    maxsize = MAX_DGRAM_SIZE
+    timeout = 1
 
-def broadcastState(ref):
-    #osc.send("/cueb/device/state", deviceUniqueId, configStore.getConfig("name"))
-    pass
+    print("Starting UDP server @ (%s, %s)", host, port)
+    ai = socket.getaddrinfo(host, port)[0]  # blocking!
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    sock.setblocking(False)
+    sock.bind(ai[-1])
+
+    p = select.poll()
+    p.register(sock, select.POLLIN)
+    poll = getattr(p, "ipoll", p.poll)
+
+    print("Entering polling loop...")
+    while True:
+        try:
+            for res in poll(timeout):
+                if res[1] & (select.POLLERR | select.POLLHUP):
+                    print("UDPServer.serve: unexpected socket error.")
+                    break
+                elif res[1] & select.POLLIN:
+                    buf, addr = sock.recvfrom(maxsize)
+                    asyncio.create_task(cb(res[0], buf, addr, **params))
+            await asyncio.sleep(interval)
+        except asyncio.CancelledError:
+            print("UDPServer.serve task cancelled.")
+            break
+
+    # Shutdown server
+    sock.close()
+    print("Bye!")
+
+async def broadcastState(text="None"):
+    oscClient.send("/theatrechat/message/2", deviceUniqueId, text)
+
+
+async def handle_request(sock, data, caddr, **params):
+    handle_osc(data, caddr, **params)
 
 def oscMessageRecieved(timetag, data):
     oscaddr, tags, args, src = data
@@ -259,12 +306,15 @@ def oscMessageRecieved(timetag, data):
     print(tags)
     print(args)
     print(src)
-    
-    #osc.send("/theatrechat/message/2", args[0], args[1])
-    
-'''
-Main Loop
-'''
+    asyncio.create_task(broadcastState(args[1]))
+
+
+oscClient = Client(deviceBroadcastAddress, int(configStore.getConfig("osc-sendport")))
+
+try:
+    asyncio.run(oscServer(deviceRoutingPrefix, int(configStore.getConfig("osc-recieveport")), handle_request, dispatch=oscMessageRecieved))
+except KeyboardInterrupt:
+    pass
 '''
 TODO
 - Buttons with hardware interrupts
@@ -272,31 +322,6 @@ TODO
 - Broadcast state all the time to keep clients in sync with the uid
 - Reply with config/name etc when requested
 '''
-
-MAX_DGRAM_SIZE = 1472
-def run_server(saddr, port, handler=handle_osc):
-    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    ai = socket.getaddrinfo(saddr, port)[0]
-    sock.setblocking(True)
-    sock.bind(ai[-1])
-    print("Listening for OSC messages")
-    osc.send("/theatrechat/message/1", 'User10','test')
-    try:
-        while True:
-            data, caddr = sock.recvfrom(MAX_DGRAM_SIZE)
-            print("RECV %i bytes",
-                                    len(data))
-            print(caddr)
-            handler(data, caddr, dispatch=oscMessageRecieved)
-    finally:
-        sock.close()
-        
-#tim = Timer(period=5000, mode=Timer.ONE_SHOT, callback=lambda t:print(1))
-#tim2 = Timer(period=1000, mode=Timer.PERIODIC, callback=broadcastState)
-
-osc = Client(deviceBroadcastAddress, int(configStore.getConfig("osc-sendport")))
-run_server(deviceRoutingPrefix, int(configStore.getConfig("osc-recieveport")))
 
 '''
 for i in range(len(leds)):

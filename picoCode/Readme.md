@@ -14,5 +14,5 @@ You sadly have to install Thonny
 
 Libraries are in the libs folder. You can copy them to the Pico using Thonny
 
-- [microWebSrv](https://github.com/jczic/MicroWebSrv)
+- [tinyweb](https://github.com/belyalov/tinyweb)
 - [uosc](https://github.com/SpotlightKid/micropython-osc)
