@@ -14,9 +14,8 @@ function App() {
 	})
 	const toggleColorScheme = (value?: ColorScheme) =>
 		setColorScheme(value || (colorScheme === 'dark' ? 'light' : 'dark'))
-
+	//TODO https://trpc.io/docs/reactjs/setup
 	return (
-		TODO https://trpc.io/docs/reactjs/setup
 		<ColorSchemeProvider colorScheme={colorScheme} toggleColorScheme={toggleColorScheme}>
 			<MantineProvider theme={{ colorScheme }} withGlobalStyles withNormalizeCSS>
 				  <Notifications />

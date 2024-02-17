@@ -1,0 +1,16 @@
+{
+  "build": {
+    "dockerfile": "Dockerfile",
+    "args": { "VARIANT": "20-bookworm" }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "esbenp.prettier-vscode",
+        "christian-kohler.npm-intellisense",
+        "dbaeumer.vscode-eslint"
+      ]
+    }
+  },
+  "postCreateCommand": "rm -r node_modules && npm install --platform=win32"
+}

@@ -68,7 +68,7 @@ def buttonLong(data):
 def buttonDoubleClick(data):
     print("Button double click", data)
 
-# https://github.com/peterhinch/micropython-async/blob/master/v2/DRIVERS.md
+# https://github.com/peterhinch/micropython-async/blob/99421dcceefe8f039a1776bb1fc68f87ed085b91/v2/DRIVERS.md
 for i in range(len(buttons)):
     buttons[i]['var'] = Pin(buttons[i]['pin'], Pin.IN, Pin.PULL_UP)
     buttons[i]['tracker'] = Pushbutton(pin=buttons[i]['var'],suppress=True)
@@ -220,6 +220,34 @@ async def route_about(request, response):
     """ % rtn
     await response.start_html()
     await response.send(page)
+
+@app.route('/about.json')
+async def route_aboutjson(request, response):
+    tempReading = deviceCpuTemp.read_u16() * (3.3 / 65535)
+    temperature = 27 - (tempReading - 0.706)/0.001721
+    rtn = {
+        'version': str(version),
+        'type': 'cueb',
+        'uid': deviceUniqueId,
+        'network': {
+            'ip': deviceIp,
+            'subnetMask': deviceSubnetMask,
+            'gateway': deviceGateway,
+            'dnsServer': deviceDnsServer,
+            'routingPrefix': deviceRoutingPrefix,
+            'broadcastAddress': deviceBroadcastAddress
+        },
+        'cpuTempDegrees': temperature,
+        'config': {}
+    }
+    rtn['os'] = str(os.uname())
+    configData = configStore.getConfigStructureAndDefaults()
+    for key in configData:
+        rtn['config'][key] = {'value': configStore.getConfig(key), 'name': configData[key]['name']}
+    rtn = json.dumps(rtn)
+    await response.start_html()
+    await response.send(rtn)
+
 
 @app.route('/config')
 async def route_config(request, response):
