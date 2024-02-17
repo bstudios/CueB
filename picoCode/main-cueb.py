@@ -29,87 +29,150 @@ import configStore
 '''
 CONFIG
 '''
-version = '8.0.0'
-
+VERSION = '8.0.0'
+# Buttons & LEDs - Pinout
+BUTTONS = [{
+                'pin': 10,
+                'name': "OUTSTATION-STANDBY",
+            },{
+                'pin': 11,
+                'name': "OUTSTATION-GO",
+            }
+        ]
+LEDS = [{
+                'pin': 5,
+                'name': "OUTSTATION-STANDBY",
+                'flashFrequency': 250,
+            },{
+                'pin': 13,
+                'name': "OUTSTATION-GO",
+                'flashFrequency': 250,
+            }
+        ]
 
 '''
 Program Begins
 '''
-print("Booting version", version)
+print("[MAIN] Booting version", VERSION)
+
 
 '''
-Setup Buttons & LEDs
+Main State Logic
 '''
-buttons = [{
-                'pin': 10,
-                'name': "Test"
-            },{
-                'pin': 11,
-                'name': "Test2"
-            }
-        ]
-leds = [{
-            'pin': 5,
-            'name': "Test3",
-            'flashFrequency': 250,
-        },{
-            'pin': 13,
-            'name': "Test3",
-            'flashFrequency': 250
-        }
-    ]
+state = 0
+def translateState(stateInt):
+    # Translates the state integer into a human readable string
+    if (stateInt == 0):
+        return "Error"
+    elif (stateInt == 1):
+        return "Ready"
+    elif (stateInt == 2):
+        return "Unacknowledged Standby"
+    elif (stateInt == 3):
+        return "Acknowledged Standby"
+    elif (stateInt == 4):
+        return "Unacknowledged Go"
+    elif (stateInt == 5):
+        return "Acknowledged Go"
+    elif (stateInt == 6):
+        return "Panic/Vegas"
+    else:
+        return "Unknown"
 
+def setState(newState):
+    global state
+    state = newState
+    if (newState == 1):
+        LEDOff(getLEDIdByName("OUTSTATION-STANDBY"))
+        LEDOff(getLEDIdByName("OUTSTATION-GO"))
+    elif (newState == 2):
+        LEDFlash(getLEDIdByName("OUTSTATION-STANDBY"))
+        LEDOff(getLEDIdByName("OUTSTATION-GO"))
+    elif (newState == 3):
+        LEDOn(getLEDIdByName("OUTSTATION-STANDBY"))
+        LEDOff(getLEDIdByName("OUTSTATION-GO"))
+    elif (newState == 4):
+        LEDOff(getLEDIdByName("OUTSTATION-STANDBY"))
+        LEDFlash(getLEDIdByName("OUTSTATION-GO"))
+    elif (newState == 5):
+        LEDOff(getLEDIdByName("OUTSTATION-STANDBY"))
+        LEDOn(getLEDIdByName("OUTSTATION-GO"))
+    elif (newState == 6):
+        LEDOn(getLEDIdByName("OUTSTATION-STANDBY"))
+        LEDOn(getLEDIdByName("OUTSTATION-GO"))
+    print("[STATE] State changed to", translateState(state))
+
+
+'''
+Setup Buttons & LEDs - Interrupts
+'''
 def buttonPress(data):
-    print("Button press", data)
+    if (data[0] == "OUTSTATION-STANDBY"):
+        if (state == 2):
+            setState(3)
+    elif(data[0] == "OUTSTATION-GO"):
+        if (state == 4):
+            setState(5)
+
 def buttonRelease(data):
     print("Button release", data)
 def buttonLong(data):
     print("Button long", data)
 def buttonDoubleClick(data):
-    print("Button double click", data)
+    if (data[0] == "OUTSTATION-GO"):
+        if (state == 6):
+            setState(1)
+        elif (state != 0):
+            setState(6)
 
 # https://github.com/peterhinch/micropython-async/blob/99421dcceefe8f039a1776bb1fc68f87ed085b91/v2/DRIVERS.md
-for i in range(len(buttons)):
-    buttons[i]['var'] = Pin(buttons[i]['pin'], Pin.IN, Pin.PULL_UP)
-    buttons[i]['tracker'] = Pushbutton(pin=buttons[i]['var'],suppress=True)
-    buttons[i]['tracker'].press_func(buttonPress, (buttons[i]['name'],))
-    buttons[i]['tracker'].double_func(buttonDoubleClick, (buttons[i]['name'],))
-    buttons[i]['tracker'].long_func(buttonLong, (buttons[i]['name'],))
-    buttons[i]['tracker'].release_func(buttonRelease, (buttons[i]['name'],))
-    if (buttons[i]['var'].value() == 1):
-        buttons[i]['status'] = True
+for i in range(len(BUTTONS)):
+    BUTTONS[i]['var'] = Pin(BUTTONS[i]['pin'], Pin.IN, Pin.PULL_UP)
+    BUTTONS[i]['tracker'] = Pushbutton(pin=BUTTONS[i]['var'],suppress=True)
+    BUTTONS[i]['tracker'].press_func(buttonPress, (BUTTONS[i]['name'],))
+    BUTTONS[i]['tracker'].double_func(buttonDoubleClick, (BUTTONS[i]['name'],))
+    BUTTONS[i]['tracker'].long_func(buttonLong, (BUTTONS[i]['name'],))
+    BUTTONS[i]['tracker'].release_func(buttonRelease, (BUTTONS[i]['name'],))
+    if (BUTTONS[i]['var'].value() == 1):
+        BUTTONS[i]['status'] = True
     else:
-        buttons[i]['status'] = False
+        BUTTONS[i]['status'] = False
 
-def flashLEDRunner(ledid):
-    while leds[ledid]['flash']:
-        if (leds[ledid]['status']):
-            leds[ledid]['status'] = False
-            leds[ledid]['var'].low()
+async def flashLEDRunner(ledid):
+    while LEDS[ledid]['flash']:
+        if (LEDS[ledid]['status']):
+            LEDS[ledid]['status'] = False
+            LEDS[ledid]['var'].low()
         else:
-            leds[ledid]['status'] = True
-            leds[ledid]['var'].high()
-        await asyncio.sleep_ms(leds[ledid]['flashFrequency'])
+            LEDS[ledid]['status'] = True
+            LEDS[ledid]['var'].high()
+        await asyncio.sleep_ms(LEDS[ledid]['flashFrequency'])
 
 def LEDFlash(ledid):
-    leds[i]['flash'] = True
+    LEDS[ledid]['flash'] = True
     asyncio.create_task(flashLEDRunner(ledid))
 
 def LEDOn(ledid):
-    leds[ledid]['flash'] = False
-    leds[ledid]['status'] = True
-    leds[ledid]['var'].high()
+    LEDS[ledid]['flash'] = False
+    LEDS[ledid]['status'] = True
+    LEDS[ledid]['var'].high()
 
 def LEDOff(ledid):
-    leds[ledid]['flash'] = False
-    leds[ledid]['status'] = False
-    leds[ledid]['var'].low()
+    LEDS[ledid]['flash'] = False
+    LEDS[ledid]['status'] = False
+    LEDS[ledid]['var'].low()
 
-for i in range(len(leds)):
-    leds[i]['var'] = Pin(leds[i]['pin'], Pin.OUT)
-    leds[i]['status'] = True
-    leds[i]['flash'] = False
-    leds[i]['var'].high()
+def getLEDIdByName(name):
+    for i in range(len(LEDS)):
+        if (LEDS[i]['name'] == name):
+            return i
+    raise Exception("LED not found")
+
+for i in range(len(LEDS)):
+    LEDS[i]['var'] = Pin(LEDS[i]['pin'], Pin.OUT)
+    LEDS[i]['status'] = True
+    LEDS[i]['flash'] = False
+    LEDS[i]['var'].high()
 
 '''
 Init W5x00 chip
@@ -119,21 +182,26 @@ nic = network.WIZNET5K(spi,Pin(17),Pin(20)) #spi,cs,reset pin
 nic.active(True)
 
 def reboot():
-    print("Rebooting")
+    print("[MAIN] Rebooting")
     machine.reset() # Hard reset equivalent to pulling the power
     #sys.exit() #Soft reset just rebooting the virtual machine
 
+async def rebootAsync():
+    print("[MAIN] Reboot is scheduled")
+    await asyncio.sleep(3.0)
+    reboot()
+
 try:
-    print("Attempting DHCP connection")
+    print("[NETWORK] Attempting DHCP connection")
     nic.ifconfig('dhcp')
 except:
-    print("No DHCP, rebooting in 30s")
+    print("[NETWORK] No DHCP, rebooting in 30s")
     time.sleep(30)
     reboot()
 
 while not nic.isconnected():
     time.sleep(1)
-    print("Awaiting connection")
+    print("[NETWORK] Awaiting connection")
 
 deviceIp, deviceSubnetMask, deviceGateway, deviceDnsServer = nic.ifconfig()
 deviceRoutingPrefix = (".".join(map(str, [i & m
@@ -141,10 +209,10 @@ deviceRoutingPrefix = (".".join(map(str, [i & m
                          map(int, deviceSubnetMask.split(".")))])))
 deviceBroadcastAddress = (".".join(map(str,[(ioctet | ~moctet) & 0xff for ioctet, moctet in zip(tuple(map(int, deviceIp.split('.'))), tuple(map(int, deviceSubnetMask.split('.'))))])))
 
-print("Booted with IP " + str(deviceIp))
+print("[NETWORK] Got IP " + str(deviceIp))
 
 def getUniqueId():
-    # This could be something a bit like the the mac address, the idea is its unique to a particular board
+    # This is something a bit like the the mac address, the idea is its unique to a particular board
     try:
         return ubinascii.hexlify(machine.unique_id()).decode("utf-8")
     except:
@@ -172,19 +240,29 @@ async def route_index(request, response):
 async def route_style(request, response):
     await response.send_file('assets/style.css',content_type="text/css",max_age=31536000)
 
+@app.route('/favicon.ico')
+async def route_style(request, response):
+    # Seems a bit silly, but you have to have one otherwise each pageload makes a request to the homepage because of the catchall
+    await response.send_file('assets/favicon.png',content_type="image/png",max_age=31536000)
+
+@app.route('/rebooting')
+async def route_reboot(request, response):
+    await response.send_file('assets/rebooting.html',content_type="text/html",max_age=31536000)
+
 @app.catchall()
 async def route_404(request, response):
     await response.redirect('/')
 
 deviceCpuTemp = machine.ADC(4)
-@app.route('/about')
-async def route_about(request, response):
+def prepareConfigString():
     tempReading = deviceCpuTemp.read_u16() * (3.3 / 65535)
     temperature = 27 - (tempReading - 0.706)/0.001721
     rtn = {
-        'version': str(version),
+        'version': str(VERSION),
         'type': 'cueb',
         'uid': deviceUniqueId,
+        'stateString': translateState(state),
+        'state': state,
         'network': {
             'ip': deviceIp,
             'subnetMask': deviceSubnetMask,
@@ -194,14 +272,17 @@ async def route_about(request, response):
             'broadcastAddress': deviceBroadcastAddress
         },
         'cpuTempDegrees': temperature,
-        'config': {}
+        'config': {},
     }
     rtn['os'] = str(os.uname())
     configData = configStore.getConfigStructureAndDefaults()
     for key in configData:
         rtn['config'][key] = {'value': configStore.getConfig(key), 'name': configData[key]['name']}
-    rtn = json.dumps(rtn)
+    return rtn
 
+@app.route('/about')
+async def route_about(request, response):
+    rtn = json.dumps(prepareConfigString())
     page = """\
     <!DOCTYPE html>
       <html>
@@ -210,7 +291,8 @@ async def route_about(request, response):
           <link rel="stylesheet" href="/style.css">
           <title>About Device</title>
         </head>
-        <body>
+        <body style="text-align: left;">
+            <a href="/" class="button" type="button" style="background-color: grey;">&lt; Back</a><br />
             <pre id="json">%s</pre>
             <script>
                 document.getElementById("json").textContent = JSON.stringify(JSON.parse(document.getElementById("json").textContent), undefined, 4);
@@ -223,80 +305,93 @@ async def route_about(request, response):
 
 @app.route('/about.json')
 async def route_aboutjson(request, response):
-    tempReading = deviceCpuTemp.read_u16() * (3.3 / 65535)
-    temperature = 27 - (tempReading - 0.706)/0.001721
-    rtn = {
-        'version': str(version),
-        'type': 'cueb',
-        'uid': deviceUniqueId,
-        'network': {
-            'ip': deviceIp,
-            'subnetMask': deviceSubnetMask,
-            'gateway': deviceGateway,
-            'dnsServer': deviceDnsServer,
-            'routingPrefix': deviceRoutingPrefix,
-            'broadcastAddress': deviceBroadcastAddress
-        },
-        'cpuTempDegrees': temperature,
-        'config': {}
-    }
-    rtn['os'] = str(os.uname())
-    configData = configStore.getConfigStructureAndDefaults()
-    for key in configData:
-        rtn['config'][key] = {'value': configStore.getConfig(key), 'name': configData[key]['name']}
-    rtn = json.dumps(rtn)
-    await response.start_html()
+    rtn = json.dumps(prepareConfigString())
+    response.add_header('Content-Type', 'application/json')
+    await response._send_headers()
     await response.send(rtn)
 
+def urldecode_query(s):
+    """Decode urlencoded string (including '+' char).
+
+    Returns decoded string
+    """
+    s = s.replace('+', ' ')
+    arr = s.split('%')
+    res = arr[0]
+    for it in arr[1:]:
+        if len(it) >= 2:
+            res += chr(int(it[:2], 16)) + it[2:]
+        elif len(it) == 0:
+            res += '%'
+        else:
+            res += it
+    return res
 
 @app.route('/config')
 async def route_config(request, response):
-    #formData = await request.read_parse_form_data()
-    #formData = await request.read_request_line()
-    '''
-    print(formData)
-    if (len(formData) > 0):
-        for key in formData:
-            configStore.setConfig(str(key),str(data[key]))
-        reboot()
-    '''
-    content = """\
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <meta charset="UTF-8" />
-          <link rel="stylesheet" href="/style.css">
-          <title>Settings</title>
-        </head>
-        <body>
-            <h1>Settings</h1>
-            <form method="GET">
-              <label>Device ID</label><br />
-              <input type="text" readonly value="%s" disabled><br />
-      """ % str(deviceUniqueId)
-    configStructure = configStore.getConfigStructureAndDefaults()
-    for key in configStructure:
+    changed = False
+    if (len(request.query_string.decode()) > 0):
+        formData = {}
+        pairs = request.query_string.decode().split('&')
+        for p in pairs:
+            vals = [urldecode_query(x) for x in p.split('=', 1)]
+            if len(vals) == 1:
+                formData[vals[0]] = ''
+            else:
+                formData[vals[0]] = vals[1]
+        
+        print("[WEB] Recieved formdata", formData)
+        for key,value in formData.items():
+            if (str(configStore.getConfig(key)) != value):
+                print("[WEB] Detected config changed for {0} from {1} to {2}".format(key, str(configStore.getConfig(key)), value))
+                configStore.setConfig(str(key),str(value))
+                changed = True
+    
+    if (changed):
+        asyncio.create_task(rebootAsync())
+        await response.redirect('/rebooting')
+    else:
+        content = """\
+          <!DOCTYPE html>
+          <html>
+            <head>
+              <meta charset="UTF-8" />
+              <link rel="stylesheet" href="/style.css">
+              <title>Settings</title>
+            </head>
+            <body>
+                <h1>Settings</h1>
+                <form method="GET">
+                  <label>Device ID</label><br />
+                  <input type="text" readonly value="%s" disabled><br />
+          """ % str(deviceUniqueId)
+        configStructure = configStore.getConfigStructureAndDefaults()
+        for key in configStructure:
+            content += """\
+                <label>%s</label><br />
+                <input type="text" name="%s" value="%s" required minlength="1"><br />
+                """ % ( configStructure[key]['name'],
+                        key,
+                        str(configStore.getConfig(key)),
+                )
+
         content += """\
-            <label>%s</label><br />
-            <input type="text" name="%s" value="%s" required minlength="1"><br />
-            """ % ( configStructure[key]['name'],
-                    key,
-                    str(configStore.getConfig(key)),
-            )
+            <br /><br /><input type="submit" value="Save & Reboot" class="button" style="background-color: green;">
+                    </form>
+                    <br /><br /><a href="/" class="button" type="button" style="background-color: grey;">&lt; Back</a><a href="/factoryReset" class="button" type="button" style="background-color: red;">Factory Reset</a>
+                </body>
+                </html>
+        """
+        await response.start_html()
+        await response.send(content)
 
-    content += """\
-        <br /><br /><input type="submit" value="Save & Reboot" class="button" style="background-color: green;">
-                </form>
-                <br /><br /><a href="/" class="button" type="button" style="background-color: grey;">&lt; Back</a><a href="/set/reset" class="button" type="button" style="background-color: red;">Factory Reset</a>
-            </body>
-            </html>
-    """
-    await response.start_html()
-    await response.send(content)
-  
+@app.route('/factoryReset')
+async def route_reset(request, response):
+    configStore.deleteConfig()
+    asyncio.create_task(rebootAsync())
+    await response.redirect('/rebooting')
+
 app.run(host='0.0.0.0', port=80, loop_forever=False)
-
-
 
 '''
 OSC
@@ -304,7 +399,7 @@ OSC
 
 MAX_DGRAM_SIZE = 1472
 async def oscServer(host, port, cb, **params):
-    print("Starting UDP server")
+    print("[OSC] Starting UDP server")
     ai = socket.getaddrinfo(host, port)[0]  # blocking!
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.setblocking(False)
@@ -314,48 +409,54 @@ async def oscServer(host, port, cb, **params):
     p.register(sock, select.POLLIN)
     poll = getattr(p, "ipoll", p.poll)
 
-    print("Entering polling loop...")
+    print("[OSC] Entering polling loop...")
+    setState(1)
     while True:
         try:
             for res in poll(1):
                 if res[1] & (select.POLLERR | select.POLLHUP):
-                    print("UDPServer.serve: unexpected socket error.")
+                    print("[OSC] UDPServer.serve: unexpected socket error.")
                     break
                 elif res[1] & select.POLLIN:
                     buf, addr = sock.recvfrom(MAX_DGRAM_SIZE)
                     asyncio.create_task(cb(res[0], buf, addr, **params))
             await asyncio.sleep(0.0)
         except asyncio.CancelledError:
-            print("UDPServer.serve task cancelled.")
+            print("[OSC] UDPServer.serve task cancelled.")
             break
 
     # Shutdown server
     sock.close()
-    print("UDPServer shutdown")
+    setState(0)
+    print("[OSC] Server shutdown")
 
 
     
 
-def broadcastState():
+async def broadcastState():
     while True:
         await asyncio.sleep_ms(100)
-        oscClient.send("/theatrechat/message/2", deviceUniqueId, "state")
+        oscClient.send("/cueb/outstationstate", deviceUniqueId, "state")
 
 async def sendMessage(text="None"):
-    oscClient.send("/theatrechat/message/2", deviceUniqueId, text)
+    oscClient.send("/cueb/message/2", deviceUniqueId, text)
 
 asyncio.create_task(broadcastState())
 
 async def handle_request(sock, data, caddr, **params):
     handle_osc(data, caddr, **params)
 
+'''
+Function that handles receipt of an OSC message
+'''
 def oscMessageRecieved(timetag, data):
     oscaddr, tags, args, src = data
+    
     print(oscaddr)
     print(tags)
     print(args)
     print(src)
-    asyncio.create_task(sendMessage(args[1]))
+    #asyncio.create_task(sendMessage(args[1]))
 
 oscClient = Client(deviceBroadcastAddress, int(configStore.getConfig("osc-sendport")))
 
@@ -366,6 +467,7 @@ oscClient = Client(deviceBroadcastAddress, int(configStore.getConfig("osc-sendpo
 try:
     asyncio.run(oscServer(deviceRoutingPrefix, int(configStore.getConfig("osc-recieveport")), handle_request, dispatch=oscMessageRecieved))
 except KeyboardInterrupt:
+    setState(0)
     pass
 '''
 TODO
