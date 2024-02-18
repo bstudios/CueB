@@ -9,6 +9,7 @@ import {
 } from '../contexts/DeviceStatusReducer'
 import { IconCheck } from '@tabler/icons-react'
 import axios from 'axios'
+import { trpc } from '../trpc/trpc'
 
 const DURATION_TO_HOLD_GO = 2000
 
@@ -51,6 +52,7 @@ const Channel = (props: { device: ProjectDevice }) => {
 			clearInterval(interval)
 		}
 	}, [])
+
 
 	const devices = useDeviceStatus()
 	const deviceStatus = devices[props.device.ip]
@@ -313,7 +315,11 @@ export const Operate = () => {
 		key: 'project-devices',
 		defaultValue: [],
 	})
-	if (projectDevices.length === 0) return <div>Setup your devices in the Devices tab</div>
+	const userList = trpc.userList.useQuery();
+
+	if (projectDevices.length === 0) return (
+		<div>Setup your devices in the Devices tab {userList.data ? userList.data.map(value => value.name) : null}</div>
+	)
 	return (
 		<Grid justify="center" columns={12} gutter="sm">
 			<Grid.Col xs={12} sm={6} md={4} lg={3} xl={2}>
