@@ -1,47 +1,53 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import {
 	AppShell,
 	Container,
 	useMantineTheme,
-	MediaQuery,
-	Navbar,
 	Image,
-	Header,
 	ScrollArea,
 	useMantineColorScheme,
 	Group,
 	ActionIcon,
 	Burger,
-	Footer,
 	SegmentedControl,
 } from '@mantine/core'
 import { useViewportSize } from '@mantine/hooks'
 import { CueList } from './CueList'
 import IconLandscape from './icon/icon-landscape.png'
-
+import { IconSun, IconMoon } from '@tabler/icons-react';
+import classes from './MainNav.module.css'
 const HEADER_HEIGHT = 70
 const FOOTER_HEIGHT = 60
 
 export const MainNav = () => {
 	const { height } = useViewportSize()
 	const theme = useMantineTheme()
-	const { colorScheme, toggleColorScheme } = useMantineColorScheme()
+	const { colorScheme, toggleColorScheme } = useMantineColorScheme();
 	const [cueListOpened, setCueListOpened] = useState(true)
 	const currentPath = useLocation()
 	const navigate = useNavigate()
+
 	return (
 		<AppShell
 			styles={{
 				main: {
-					background: theme.colorScheme === 'dark' ? theme.colors.dark[8] : theme.colors.gray[0],
+					background: colorScheme === 'dark' ? theme.colors.dark[8] : theme.colors.gray[0],
 				},
 			}}
-			padding={0}
-			navbarOffsetBreakpoint="sm"
-			asideOffsetBreakpoint="sm"
-			header={
-				<Header height={HEADER_HEIGHT} p="md">
+			header={{ height: HEADER_HEIGHT }}
+			footer={{
+				height: FOOTER_HEIGHT,
+			}}
+			navbar={{
+				width: {
+					sm: 200, lg: 300
+				}, collapsed: { mobile: !cueListOpened, desktop: !cueListOpened },
+				breakpoint: "sm"
+			}}
+			padding="md"
+		>
+			<AppShell.Header>
 					<div
 						style={{
 							display: 'flex',
@@ -51,17 +57,16 @@ export const MainNav = () => {
 						}}
 					>
 						<Group>
-							{currentPath.pathname.startsWith('/cues') && (
-								<MediaQuery largerThan="sm" styles={{ display: 'none' }}>
-									<Burger
-										opened={cueListOpened}
-										onClick={() => setCueListOpened(o => !o)}
-										size="sm"
-										color={theme.colors.gray[6]}
-									/>
-								</MediaQuery>
+						{currentPath.pathname.startsWith('/cues') && (
+							<Burger
+								className={classes.burgerButton}
+								opened={cueListOpened}
+								onClick={() => setCueListOpened(o => !o)}
+								size="sm"
+								color={theme.colors.gray[6]}
+							/>
 							)}
-							<Image src={IconLandscape} width={100} fit="contain" />
+						<Image src={IconLandscape} h={HEADER_HEIGHT / 1.5} fit="contain" />
 						</Group>
 						<SegmentedControl
 							value={'/' + currentPath.pathname.split('/')[1]}
@@ -76,35 +81,33 @@ export const MainNav = () => {
 								{ label: 'Setup', value: '/setup' },
 							]}
 						/>
-						<ActionIcon variant="default" onClick={() => toggleColorScheme()} size={30}>
-							{colorScheme === 'dark' ? <FaSun /> : <FaMoon />}
+					<ActionIcon variant="default" onClick={() => toggleColorScheme()} size={HEADER_HEIGHT / 2}>
+						{colorScheme === 'dark' ? <IconSun style={{ width: '70%', height: '70%' }} /> : <IconMoon style={{ width: '70%', height: '70%' }} />}
 						</ActionIcon>
 					</div>
-				</Header>
-			}
-			navbar={
+			</AppShell.Header>
+			{
 				currentPath.pathname.startsWith('/cues') ? (
-					<Navbar p="md" width={{ sm: 200, lg: 300 }} hidden={!cueListOpened} hiddenBreakpoint="sm">
+					<AppShell.Navbar>
 						<CueList />
-					</Navbar>
+					</AppShell.Navbar>
 				) : undefined
 			}
-			footer={
-				<Footer height={FOOTER_HEIGHT} p="md">
-					Application footer
-				</Footer>
-			}
-		>
-			<ScrollArea
-				style={{ height: height - (FOOTER_HEIGHT + HEADER_HEIGHT) }}
-				type="auto"
-				offsetScrollbars
-				scrollbarSize={30}
-			>
-				<Container fluid py={'sm'} px={'sm'}>
-					<Outlet />
-				</Container>
-			</ScrollArea>
+			<AppShell.Footer className={classes.footer}>
+				Application footer
+			</AppShell.Footer>
+			<AppShell.Main>
+				<ScrollArea
+					style={{ height: height - (FOOTER_HEIGHT + HEADER_HEIGHT) }}
+					type="auto"
+					offsetScrollbars
+					scrollbarSize={30}
+				>
+					<Container fluid py={'sm'} px={'sm'}>
+						<Outlet />
+					</Container>
+				</ScrollArea>
+			</AppShell.Main>
 		</AppShell>
 	)
 }

@@ -1,7 +1,7 @@
 import { Text, Card, Button, Badge, Menu } from '@mantine/core'
 import { useLocalStorage } from '@mantine/hooks'
 import { showNotification } from '@mantine/notifications'
-import { IconTrash, IconBulb, IconPencil } from '@tabler/icons'
+import { IconTrash, IconBulb, IconPencil } from '@tabler/icons-react'
 
 import { useNavigate } from 'react-router-dom'
 import { ProjectDevice } from '../Device'

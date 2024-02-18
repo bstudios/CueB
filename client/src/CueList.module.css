@@ -1,30 +1,39 @@
-cue: {
-  ...theme.fn.focusStyles(),
-  display: 'flex',
-  alignItems: 'center',
-  textDecoration: 'none',
-  fontSize: theme.fontSizes.sm,
-  color: theme.colorScheme === 'dark' ? theme.colors.dark[1] : theme.colors.gray[7],
-  padding: `${theme.spacing.xs}px ${theme.spacing.sm}px`,
-  borderRadius: theme.radius.sm,
-  fontWeight: 500,
+.link {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  font-size: var(--mantine-font-size-sm);
+  color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-dark-1));
+  padding: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
+  border-radius: var(--mantine-radius-sm);
+  font-weight: 500;
 
-  '&:hover': {
-    backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[6] : theme.colors.gray[0],
-    color: theme.colorScheme === 'dark' ? theme.white : theme.black,
+  &:hover {
+      background-color: light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-6));
+      color: light-dark(var(--mantine-color-black), var(--mantine-color-white));
+  
+      & .linkIcon {
+        color: light-dark(var(--mantine-color-black), var(--mantine-color-white));
+      }
+    }
+  
+    &[data-active] {
 
-    [`& .${icon}`]: {
-      color: theme.colorScheme === 'dark' ? theme.white : theme.black,
-    },
-  },
-},
+    &,
+      &:hover {
+        background-color: var(--mantine-color-blue-light);
+        color: var(--mantine-color-blue-light-color);
 
-cueActive: {
-  '&, &:hover': {
-    backgroundColor: theme.fn.variant({ variant: 'light', color: theme.primaryColor }).background,
-    color: theme.fn.variant({ variant: 'light', color: theme.primaryColor }).color,
-    [`& .${icon}`]: {
-      color: theme.fn.variant({ variant: 'light', color: theme.primaryColor }).color,
-    },
-  },
-},
+      & .linkIcon {
+          color: var(--mantine-color-blue-light-color);
+        }
+      }
+      }
+      }
+
+.linkIcon {
+  color: light-dark(var(--mantine-color-gray-6), var(--mantine-color-dark-2));
+  margin-right: var(--mantine-spacing-sm);
+  width: rem(25px);
+  height: rem(25px);
+}

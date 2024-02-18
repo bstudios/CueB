@@ -13,7 +13,10 @@
       "path": "server"
     }
   ],
-  "settings": {},
+  "settings": {
+    "cSpell.words": ["mantine"],
+    "editor.formatOnSave": true
+  },
   "extensions": {
     "recommendations": [
       "esbenp.prettier-vscode",

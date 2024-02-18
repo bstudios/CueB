@@ -1,6 +1,6 @@
-import { Button, Modal, Title, Grid } from '@mantine/core'
+import { Button, Title, Grid } from '@mantine/core'
 import { useLocalStorage } from '@mantine/hooks'
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { ProjectDevice } from './Device'
 import { DeviceCard } from './Components/DeviceCard'
 import { DiscoveredDeviceCard } from './Scan/DiscoveredDeviceCard'

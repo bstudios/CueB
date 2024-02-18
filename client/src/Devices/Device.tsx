@@ -1,6 +1,6 @@
 import { Text, Button } from '@mantine/core'
 import { useLocalStorage } from '@mantine/hooks'
-import { IconArrowLeft } from '@tabler/icons'
+import { IconArrowLeft } from '@tabler/icons-react'
 
 import { Link, Navigate, useParams } from 'react-router-dom'
 

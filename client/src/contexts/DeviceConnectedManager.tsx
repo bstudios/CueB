@@ -1,6 +1,6 @@
 import { useLocalStorage } from '@mantine/hooks'
 import axios from 'axios'
-import React, { ReactNode, useEffect, useState } from 'react'
+import { ReactNode, useEffect, useState } from 'react'
 import { ProjectDevice } from '../Devices/Device'
 import { useDeviceStatus, useDeviceStatusDispatch } from './DeviceStatusReducer'
 

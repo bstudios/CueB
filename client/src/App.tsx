@@ -1,16 +1,19 @@
-import { MantineProvider } from '@mantine/core'
+import { ColorSchemeScript, MantineProvider } from '@mantine/core'
 import Router from './Router'
 import { DeviceStatusProvider } from './contexts/DeviceStatusReducer'
 import { Notifications } from '@mantine/notifications'
-
+import "@mantine/core/styles.css";
+//<DeviceStatusProvider>
 function App() {
 	return (
-			<MantineProvider>
+		<>
+			<ColorSchemeScript defaultColorScheme="auto" />
+			<MantineProvider defaultColorScheme="auto">
 				<Notifications />
-					<DeviceStatusProvider>
-						<Router />
-					</DeviceStatusProvider>
+
+				<Router />
 			</MantineProvider>
+		</>
 	)
 }
 

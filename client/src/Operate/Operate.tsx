@@ -1,14 +1,13 @@
-import React, { useState, useEffect } from 'react'
-import { Button, Grid, Stack, Avatar, Card, Text, keyframes } from '@mantine/core'
-import { useElementSize, useLocalStorage } from '@mantine/hooks'
+import { useState, useEffect } from 'react'
+import { Button, Grid, Stack, Avatar, Card, Text } from '@mantine/core'
+import { useLocalStorage } from '@mantine/hooks'
 import { ProjectDevice } from '../Devices/Device'
 import {
 	PossibleDeviceStates,
-	ProjectDeviceState,
 	useDeviceStatus,
 	useDeviceStatusDispatch,
 } from '../contexts/DeviceStatusReducer'
-import { IconCheck } from '@tabler/icons'
+import { IconCheck } from '@tabler/icons-react'
 import axios from 'axios'
 
 const DURATION_TO_HOLD_GO = 2000

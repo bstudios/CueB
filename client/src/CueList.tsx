@@ -1,7 +1,7 @@
 
-import { Navbar, ScrollArea, Avatar, getStylesRef } from '@mantine/core'
+import { ScrollArea, Avatar, AppShell } from '@mantine/core'
 import { Link, useParams } from 'react-router-dom'
-
+import classes from './CueList.module.css'
 const cues = [
 	{ id: 1, label: 'Cue 1' },
 	{ id: 2, label: 'Cue 2' },
@@ -61,9 +61,10 @@ export function CueList() {
 
 	const Cues = cues.map(cue => (
 		<Link
-			className={cx(classes.cue, { [classes.cueActive]: cueId && cue.id === parseInt(cueId) })}
 			to={`/cues/${cue.id}`}
 			key={cue.id}
+			className={classes.link}
+			data-active={cueId && cue.id === parseInt(cueId) || undefined}
 		>
 			<Avatar size="md" variant="filled" radius="xl" mr={'sm'}>
 				{cue.id}
@@ -73,9 +74,10 @@ export function CueList() {
 	))
 	return (
 		<>
-			<Navbar.Section grow component={ScrollArea}>
+			<AppShell.Section>Navbar header</AppShell.Section>
+			<AppShell.Section grow component={ScrollArea}>
 				{Cues}
-			</Navbar.Section>
+			</AppShell.Section>
 		</>
 	)
 }

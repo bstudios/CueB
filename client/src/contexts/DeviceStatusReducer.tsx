@@ -1,4 +1,4 @@
-import React, { createContext, useReducer, useContext, ReactNode, Dispatch } from 'react'
+import { createContext, useReducer, useContext, ReactNode, Dispatch } from 'react'
 import { DeviceConnectedManager } from './DeviceConnectedManager'
 
 export type PossibleDeviceStates = 'blank' | 'await-standby' | 'acknowledged-standby' | 'go' | 'error'
