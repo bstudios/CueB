@@ -1,0 +1,24 @@
+{
+  "folders": [
+    {
+      "name": "Client App",
+      "path": "client"
+    },
+    {
+      "name": "Device Code",
+      "path": "device"
+    },
+    {
+      "name": "Server Code",
+      "path": "server"
+    }
+  ],
+  "settings": {},
+  "extensions": {
+    "recommendations": [
+      "esbenp.prettier-vscode",
+      "christian-kohler.npm-intellisense",
+      "dbaeumer.vscode-eslint"
+    ]
+  }
+}
