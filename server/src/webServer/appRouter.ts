@@ -1,19 +1,40 @@
 import { publicProcedure, router } from "./trpc";
 import { z as zod } from "zod";
 import { EventEmitter } from "events";
-import { initTRPC } from "@trpc/server";
+import { observable } from "@trpc/server/observable";
 
-import * as trpcExpress from "@trpc/server/adapters/express";
+
 export const eventEmitter = new EventEmitter();
 
-const createContext = ({
-  req,
-  res,
-}: trpcExpress.CreateExpressContextOptions) => ({}); // no context
-type Context = Awaited<ReturnType<typeof createContext>>;
-const trpcContext = initTRPC.context<Context>().create();
+export const appRouter = router({
+  onAdd: publicProcedure.subscription(() => {
+    // return an `observable` with a callback which is triggered immediately
+    return observable<string>((emit) => {
+      const onAdd = (data: string) => {
+        // emit data to client
+        emit.next(data);
+      };
+      // trigger `onAdd()` when `add` is triggered in our event emitter
+      eventEmitter.on("add", onAdd);
+      // unsubscribe function when client disconnects or stops subscribing
+      return () => {
+        eventEmitter.off("add", onAdd);
+      };
+    });
+  }),
+  add: publicProcedure
+    .input(
+      zod.object({
+        id: zod.string().uuid().optional(),
+        text: zod.string().min(1),
+      })
+    )
+    .mutation(async (opts) => {
+      const post = { ...opts.input }; /* [..] add to db */
+      eventEmitter.emit("add", post);
+      return post;
+    }),
 
-export const appRouter = trpcContext.router({
   userList: publicProcedure.query(async () => {
     // Retrieve users from a datasource, this is an imaginary database
     const delay = await new Promise((resolve) => setTimeout(resolve, 1000));
