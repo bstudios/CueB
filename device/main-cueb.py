@@ -32,7 +32,7 @@ CONFIG
 VERSION = '8.0.0'
 # Buttons & LEDs - Pinout
 BUTTONS = [{
-                'pin': 10,
+                'pin': 12,
                 'name': "OUTSTATION-STANDBY",
             },{
                 'pin': 11,
@@ -40,12 +40,21 @@ BUTTONS = [{
             }
         ]
 LEDS = [{
-                'pin': 5,
+                'pin': 10,
                 'name': "OUTSTATION-STANDBY",
                 'flashFrequency': 250,
             },{
                 'pin': 13,
                 'name': "OUTSTATION-GO",
+                'flashFrequency': 250,
+            },
+            {
+                'pin': 14,
+                'name': "AMBER-STATUS",
+                'flashFrequency': 250,
+            },{
+                'pin': 15,
+                'name': "RED-STATUS",
                 'flashFrequency': 250,
             }
         ]
