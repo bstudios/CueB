@@ -2,13 +2,14 @@
 > Some notes here sourced from [Workshopshed](https://community.element14.com/members-area/personalblogs/b/andy-clark-s-blog/posts/vscode-and-micropython-for-the-pi-pico)
 
 ## Installing the firmware
-Installing the firmware is covered on the the https://www.raspberrypi.org/documentation/rp2040/getting-started/ page.
 
-Download the uf2 image from [v1.0.5  Wiznet/RP2040-HAT-MicroPython/releases](https://github.com/Wiznet/RP2040-HAT-MicroPython/releases/tag/v1.0.5) then copy it to the Pi Pico as a file. Before you first plug in the Pi Pico, hold down the "BootSel" button then connect the USB. This makes the device appear as a hard disk on your computer and you can copy over the UF2 image. If you then un-plug and replug the Pico Pi it reverts to programming mode.
+Press and hold the BOOTSEL button on the Wiznet W5500-EVB-Pico, then plug into the USB port of your computer. The device will appear as a USB drive. Copy the [firmware file](https://micropython.org/download/W5500_EVB_PICO/) to the USB drive. The device will reboot and the firmware will be installed. If you then un-plug and replug the Pico Pi it reverts to programming mode.
 
 ## Installing Thonny
 
 You sadly have to install Thonny 
+
+Next, copy the entire directory and subdirectory onto the pico using Thonny, and the code will then run on next reboot. 
 
 ## Libraries
 
