@@ -204,8 +204,8 @@ try:
     print("[NETWORK] Attempting DHCP connection")
     nic.ifconfig('dhcp')
 except:
-    print("[NETWORK] No DHCP, rebooting in 30s")
-    time.sleep(30)
+    print("[NETWORK] No DHCP, rebooting in 10s")
+    time.sleep(10)
     reboot()
 
 while not nic.isconnected():
