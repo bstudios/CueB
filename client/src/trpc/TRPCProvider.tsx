@@ -4,13 +4,7 @@ import { createTRPCReact } from "@trpc/react-query";
 import { ReactNode, useState } from "react";
 import type { AppRouter } from "../../../server/src/webServer/server";
 export const trpc = createTRPCReact<AppRouter>();
-
-//import { WebSocket } from "ws";
-// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
-//globalThis.WebSocket = WebSocket as any;
-
-// https://github.com/trpc/trpc/discussions/2044 appears to have some good examples?
-
+// TODO change the hardcoded address of the server
 export const TRPCProvider = ({ children }: { children?: ReactNode }) => {
   const [queryClient] = useState(() => new QueryClient());
   const [wsClient] = useState(() =>
@@ -31,7 +25,7 @@ export const TRPCProvider = ({ children }: { children?: ReactNode }) => {
             client: wsClient,
           }),
           false: httpBatchLink({
-            url: `http://localhost:2022`,
+            url: `http://localhost:2022/api`,
           }),
         }),
       ],

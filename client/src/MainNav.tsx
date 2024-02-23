@@ -17,6 +17,7 @@ import { CueList } from './CueList'
 import IconLandscape from './icon/icon-landscape.png'
 import { IconSun, IconMoon } from '@tabler/icons-react';
 import classes from './MainNav.module.css'
+import { ConnectionStatus } from './utils/ConnectionStatus'
 const HEADER_HEIGHT = 70
 const FOOTER_HEIGHT = 60
 
@@ -47,13 +48,14 @@ export const MainNav = () => {
 			}}
 			padding="md"
 		>
-			<AppShell.Header>
+			<AppShell.Header className={classes.navbarMain}>
 					<div
 						style={{
 							display: 'flex',
 							justifyContent: 'space-between',
 							alignItems: 'center',
 							height: '100%',
+						padding: 'var(--mantine-spacing-md)'
 						}}
 					>
 						<Group>
@@ -94,7 +96,16 @@ export const MainNav = () => {
 				) : undefined
 			}
 			<AppShell.Footer className={classes.footer}>
-				Application footer
+				<div
+					style={{
+						display: 'flex',
+						justifyContent: 'space-between',
+						alignItems: 'center',
+						height: '100%',
+					}}
+				>
+					<ConnectionStatus />
+				</div>
 			</AppShell.Footer>
 			<AppShell.Main>
 				<ScrollArea

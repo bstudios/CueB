@@ -1,9 +1,6 @@
 import { initTRPC } from "@trpc/server";
 import type { CreateHTTPContextOptions } from "@trpc/server/adapters/standalone";
-import {
-  createHTTPHandler,
-  createHTTPServer,
-} from "@trpc/server/adapters/standalone";
+import { createHTTPHandler } from "@trpc/server/adapters/standalone";
 import { createServer } from "http";
 import type { CreateWSSContextFnOptions } from "@trpc/server/adapters/ws";
 import { applyWSSHandler } from "@trpc/server/adapters/ws";
@@ -12,8 +9,8 @@ import { WebSocketServer } from "ws";
 import { z } from "zod";
 import cors from "cors";
 
-// This is how you initialize a context for the server
 function createContext(
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   opts: CreateHTTPContextOptions | CreateWSSContextFnOptions
 ) {
   return {};
@@ -25,7 +22,23 @@ const t = initTRPC.context<Context>().create();
 const publicProcedure = t.procedure;
 const router = t.router;
 
-const greetingRouter = router({
+const connectionStatusRouter = router({
+  connectionStatus: publicProcedure.query(() => {
+    return "Connected";
+  }),
+  webSocketStatus: publicProcedure.subscription(() => {
+    return observable<{ status: number }>((emit) => {
+      const timer = setInterval(() => {
+        emit.next({ status: 200 });
+      }, 200);
+      return () => {
+        clearInterval(timer);
+      };
+    });
+  }),
+});
+
+const postRouter = router({
   hello: publicProcedure
     .input(
       z.object({
@@ -33,9 +46,6 @@ const greetingRouter = router({
       })
     )
     .query(({ input }) => `Hello, ${input.name}!`),
-});
-
-const postRouter = router({
   createPost: publicProcedure
     .input(
       z.object({
@@ -50,34 +60,16 @@ const postRouter = router({
         ...input,
       };
     }),
-  randomNumber: publicProcedure.subscription(() => {
-    return observable<{ randomNumber: number }>((emit) => {
-      const timer = setInterval(() => {
-        // emits a number every second
-        emit.next({ randomNumber: Math.random() });
-      }, 200);
-
-      return () => {
-        clearInterval(timer);
-      };
-    });
-  }),
 });
 
 // Merge routers together
 const appRouter = router({
-  greeting: greetingRouter,
   post: postRouter,
+  connectionStatus: connectionStatusRouter,
 });
 
 export type AppRouter = typeof appRouter;
 
-// http server
-/**export const server = createHTTPServer({
-  router: appRouter,
-  createContext,
-  middleware: cors(),
-});*/
 const handler = createHTTPHandler({
   router: appRouter,
   middleware: cors(),
@@ -90,12 +82,18 @@ export const server = createServer((req, res) => {
    * Handle the request however you like,
    * just call the tRPC handler when you're ready
    */
+  if (req.url?.startsWith("/api")) {
+    return handler(req, res);
+  }
+
   if (req.url === "/favicon.ico") {
     res.writeHead(200, { "Content-Type": "text/html" });
     res.write("Hello World!");
     res.end();
   } else {
-    handler(req, res);
+    res.writeHead(404, { "Content-Type": "text/html" });
+    res.write("404 Error");
+    res.end();
   }
 });
 
@@ -108,5 +106,7 @@ applyWSSHandler<AppRouter>({
 });
 
 setInterval(() => {
-  console.log("Connected clients", wss.clients.size);
+  console.log(
+    "Connected clients", wss.clients.size
+  );
 }, 1000);

@@ -6,6 +6,7 @@ import { DeviceCard } from './Components/DeviceCard'
 import { DiscoveredDeviceCard } from './Scan/DiscoveredDeviceCard'
 import { DiscoveredDevice, scanForDevices } from './Scan/Scan'
 import { ScanModal } from './Scan/ScanModal'
+import { trpc } from '../trpc/TRPCProvider'
 
 const getHighestDeviceNumber = (devices: Array<ProjectDevice>, searchString: string) => {
 	const deviceNumbers = devices.map(device => {
@@ -28,6 +29,8 @@ export const Devices = () => {
 	})
 	const [scanModalShow, setScanModalShow] = useState(false)
 	const [scanningForDevices, setScanningForDevices] = useState(false)
+
+
 	return (
 		<>
 			<Title order={1}>Project Devices</Title>

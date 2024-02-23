@@ -10,6 +10,7 @@ import {
 } from "../contexts/DeviceStatusReducer";
 import { IconCheck } from "@tabler/icons-react";
 import axios from "axios";
+import { trpc } from "../trpc/TRPCProvider";
 
 const DURATION_TO_HOLD_GO = 2000;
 
@@ -357,8 +358,10 @@ export const Operate = () => {
     defaultValue: [],
   });
 
+
+
   if (projectDevices.length === 0)
-    return <div>Setup your devices in the Devices tab </div>;
+    return <div>Setup your devices in the Devices tab</div>;
   return (
     <Grid justify="center" columns={12} gutter="sm">
       <Grid.Col xs={12} sm={6} md={4} lg={3} xl={2}>
