@@ -12,9 +12,9 @@ except ImportError:
 try:
     import logging
 except ImportError:
-    import uosc.fakelogging as logging
+    import uosc.compat.fakelogging as logging
 
-from uosc.common import Impulse, to_time
+from uosc.common import Impulse, TimetagNow, to_time
 
 
 log = logging.getLogger("uosc.server")
@@ -33,7 +33,10 @@ def split_oscblob(msg, offset):
 
 def parse_timetag(msg, offset):
     """Parse an OSC timetag from msg at offset."""
-    return to_time(unpack('>II', msg[offset:offset + 4]))
+    if msg[offset + 7] == 1:
+        return TimetagNow
+    else:
+        return to_time(*unpack('>II', msg[offset:offset + 8]))
 
 
 def parse_message(msg, strict=False):
@@ -127,8 +130,7 @@ def handle_osc(data, src, dispatch=None, strict=False):
             messages = parse_bundle(data, strict)
     except Exception as exc:
         if __debug__:
-            log.debug("Could not parse message from %s:%i: %s",
-                      *get_hostport(src), exc)
+            log.debug("Could not parse message from %r: %s", src, exc)
             log.debug("Data: %r", data)
         return
 
@@ -143,4 +145,3 @@ def handle_osc(data, src, dispatch=None, strict=False):
                 dispatch(timetag, (oscaddr, tags, args, src))
     except Exception as exc:
         log.error("Exception in OSC handler: %s", exc)
-
