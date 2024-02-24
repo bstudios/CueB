@@ -1,6 +1,7 @@
 import { app, BrowserWindow, Menu } from "electron";
 import path from "path";
 import { server } from "./webServer/server";
+import { Database } from "./db/database";
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require("electron-squirrel-startup")) {
@@ -17,9 +18,17 @@ const createWindow = () => {
     },
   });
 
+  new Database();
   server.listen(2022);
 
   const name = app.getName();
+  app.setAboutPanelOptions({
+    applicationName: "CueB",
+    applicationVersion: app.getVersion(),
+    version: app.getVersion(),
+    credits: "",
+    copyright: "©2024 James Bithell",
+  });
   const macMenu: Electron.MenuItemConstructorOptions[] = [
     {
       label: name,

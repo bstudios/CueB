@@ -1,0 +1,105 @@
+{
+  "version": "5",
+  "dialect": "sqlite",
+  "id": "cb305138-876b-4f6f-8d30-d42f40e96434",
+  "prevId": "00000000-0000-0000-0000-000000000000",
+  "tables": {
+    "channels": {
+      "name": "channels",
+      "columns": {
+        "channels.id": {
+          "name": "channels.id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 0
+        },
+        "channels.name": {
+          "name": "channels.name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "devices": {
+      "name": "devices",
+      "columns": {
+        "devices.id": {
+          "name": "devices.id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "devices.ip": {
+          "name": "devices.ip",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "devices.name": {
+          "name": "devices.name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "devices.location": {
+          "name": "devices.location",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "devices.hidden": {
+          "name": "devices.hidden",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": false
+        },
+        "channels.id": {
+          "name": "channels.id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": "NULL"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "devices_channels.id_channels_channels.id_fk": {
+          "name": "devices_channels.id_channels_channels.id_fk",
+          "tableFrom": "devices",
+          "tableTo": "channels",
+          "columnsFrom": [
+            "channels.id"
+          ],
+          "columnsTo": [
+            "channels.id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "cascade"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    }
+  },
+  "enums": {},
+  "_meta": {
+    "schemas": {},
+    "tables": {},
+    "columns": {}
+  }
+}
