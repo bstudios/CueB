@@ -8,9 +8,10 @@ import { observable } from "@trpc/server/observable";
 import { EventEmitter, WebSocketServer } from "ws";
 import { z } from "zod";
 import cors from "cors";
-import { devices } from "./../db/schema/devices";
-import { Database } from "./../db/database";
-import { devicesList, getDevices } from "./../db/controllers/devices";
+import { devices } from "./db/schema/devices";
+import { Database } from "./db/database";
+import { DevicesList, getDevices } from "./db/controllers/devices";
+import { eq } from "drizzle-orm";
 
 // TODO split this up into files
 function createContext(
@@ -49,12 +50,17 @@ const devicesRouter = router({
     return {};
   }),
   sub: publicProcedure.subscription(() => {
-    return observable<{ devices: devicesList }>((emit) => {
+    return observable<{ devices: DevicesList }>((emit) => {
       const broadcast = () => {
-        getDevices().then((devices) => {
-          emit.next({ devices: devices });
+        getDevices().then((DevicesList) => {
+          console.log("broadcasting");
+          console.log(DevicesList);
+          emit.next({ devices: DevicesList });
         });
       };
+
+      // When client joins, send them the current devices
+      broadcast();
 
       eventEmitter.on("devices", () => {
         broadcast();
@@ -76,11 +82,18 @@ const devicesRouter = router({
       eventEmitter.emit("devices");
       return {};
     }),
+  delete: publicProcedure
+    .input(z.object({ id: z.number() }))
+    .mutation(({ input }) => {
+      Database.db.delete(devices).where(eq(devices.id, input.id)).execute();
+      eventEmitter.emit("devices");
+      return {};
+    }),
 });
 
 // Merge routers together
 const appRouter = router({
-  post: devicesRouter,
+  devices: devicesRouter,
   connectionStatus: connectionStatusRouter,
 });
 export type AppRouter = typeof appRouter;
@@ -95,7 +108,9 @@ const handler = createHTTPHandler({
 export const server = createServer((req, res) => {
   if (req.url?.startsWith("/api")) {
     // Send for TRPC to handle
-    return handler(req, res);
+    const newReq = req;
+    newReq.url = newReq.url?.replace(/^\/api/, "");
+    return handler(newReq, res);
   }
 
   // Handle all other requests ourselves
@@ -105,6 +120,7 @@ export const server = createServer((req, res) => {
     res.end();
   } else {
     // This will be where we'll handle our static files
+    console.log("rendered 404");
     res.writeHead(404, { "Content-Type": "text/html" });
     res.write("404 Error");
     res.end();
@@ -120,7 +136,5 @@ applyWSSHandler<AppRouter>({
 });
 
 setInterval(() => {
-  console.log(
-    "Connected clients", wss.clients.size
-  );
+  console.log("Connected clients", wss.clients.size);
 }, 1000);

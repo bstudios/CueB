@@ -1,7 +1,7 @@
 {
   "version": "5",
   "dialect": "sqlite",
-  "id": "cb305138-876b-4f6f-8d30-d42f40e96434",
+  "id": "85081d4a-ec13-4261-8254-76fe7159faca",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "channels": {
@@ -9,6 +9,13 @@
       "columns": {
         "channels.id": {
           "name": "channels.id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "channels.number": {
+          "name": "channels.number",
           "type": "integer",
           "primaryKey": false,
           "notNull": true,
@@ -42,7 +49,7 @@
           "name": "devices.ip",
           "type": "text",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "devices.name": {

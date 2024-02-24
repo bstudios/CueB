@@ -1,24 +1,22 @@
 import { Text, Card, Button, Badge, Menu } from '@mantine/core'
-import { useLocalStorage } from '@mantine/hooks'
 import { showNotification } from '@mantine/notifications'
 import { IconTrash, IconBulb, IconPencil } from '@tabler/icons-react'
 
 import { useNavigate } from 'react-router-dom'
-import { ProjectDevice } from '../Device'
-import { identifyDevice } from '../Scan/IdentifyDevice'
+import { Device } from '../../../../server/src/db/controllers/devices'
+import { trpc } from '../../trpc/TRPCProvider'
 
-export const DeviceCard = (props: ProjectDevice) => {
-	const [projectDevices, setProjectDevices] = useLocalStorage<Array<ProjectDevice>>({
-		key: 'project-devices',
-		defaultValue: [],
-	})
+export const DeviceCard = (props: { device: Device }) => {
 	const navigate = useNavigate()
+	const deleteDevice = trpc.devices.delete.useMutation();
+
+	if (!props.device) return <Text>Loading</Text>
 	return (
 		<Card shadow="sm" p="lg" radius="md" withBorder>
-			<Text weight={500}>{props.name}</Text>
-			<Text>{props.location}</Text>
-			{!props.emulated ? <Badge variant="outline">IP: {props.ip}</Badge> : null}
-			{!props.emulated ? <Badge variant="light">Version {props.version}</Badge> : null}
+			<Text>{props.device.name ?? ""}</Text>
+			<Text>{props.device.location}</Text>
+			<Badge variant="outline">IP: {props.device?.ip}</Badge>
+			<Badge variant="light">Version ??</Badge>
 			<Menu withinPortal>
 				<Menu.Target>
 					<Button variant="light" fullWidth mt="md" radius="md">
@@ -27,11 +25,11 @@ export const DeviceCard = (props: ProjectDevice) => {
 				</Menu.Target>
 				<Menu.Dropdown>
 					<Menu.Label>Device</Menu.Label>
-					<Menu.Item icon={<IconPencil />} onClick={() => navigate(props.ip)}>
+					<Menu.Item leftSection={<IconPencil />} onClick={() => navigate(props.device.id)}>
 						Settings
 					</Menu.Item>
 					<Menu.Item
-						icon={<IconBulb />}
+						leftSection={<IconBulb />}
 						onClick={() =>
 							identifyDevice(props.ip).then(result => {
 								if (result) {
@@ -52,9 +50,9 @@ export const DeviceCard = (props: ProjectDevice) => {
 					</Menu.Item>
 					<Menu.Item
 						color={'red'}
-						icon={<IconTrash />}
+						leftSection={<IconTrash />}
 						onClick={() => {
-							setProjectDevices(projectDevices.filter(device => device.ip !== props.ip))
+							deleteDevice.mutate({ id: props.device.id })
 						}}
 					>
 						Remove from Project

@@ -2,8 +2,9 @@ import { drizzle } from "drizzle-orm/better-sqlite3";
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 import BetterSQLite3DatabaseLib from "better-sqlite3";
 import path from "path";
-import { devices, devicesRelations } from "./schema/devices";
-import { channels, channelsRelations } from "./schema/channels";
+import * as devicesSchema from "./schema/devices";
+import * as channelsSchema from "./schema/channels";
+import * as relations from "./schema/relations";
 
 export const createDatabase = () => {
   const sqlite = new BetterSQLite3DatabaseLib(
@@ -11,10 +12,9 @@ export const createDatabase = () => {
   );
   const db = drizzle(sqlite, {
     schema: {
-      devices,
-      devicesRelations,
-      channels,
-      channelsRelations,
+      ...devicesSchema,
+      ...channelsSchema,
+      ...relations,
     },
   });
   migrate(db, {

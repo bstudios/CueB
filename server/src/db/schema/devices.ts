@@ -1,6 +1,6 @@
 import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 import { channels } from "./channels";
-import { relations, sql } from "drizzle-orm";
+import { sql } from "drizzle-orm";
 
 export const devices = sqliteTable("devices", {
   id: integer("devices.id", { mode: "number" })
@@ -8,7 +8,7 @@ export const devices = sqliteTable("devices", {
       autoIncrement: true,
     })
     .notNull(),
-  ip: text("devices.ip"),
+  ip: text("devices.ip").notNull(),
   name: text("devices.name"),
   location: text("devices.location"),
   hidden: integer("devices.hidden", { mode: "boolean" })
@@ -21,10 +21,3 @@ export const devices = sqliteTable("devices", {
       onUpdate: "cascade",
     }),
 });
-
-export const devicesRelations = relations(devices, ({ one }) => ({
-  channels: one(channels, {
-    fields: [devices.channel],
-    references: [channels.id],
-  }),
-}));

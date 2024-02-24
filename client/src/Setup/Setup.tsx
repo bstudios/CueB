@@ -3,8 +3,7 @@ import { Button } from '@mantine/core'
 export const Setup = () => {
 	return (
 		<>
-			<div>Setup</div>
-			<Button onClick={() => localStorage.clear()}>Reset</Button>
+			<Button onClick={() => localStorage.clear()}>Clear local storage</Button>
 		</>
 	)
 }

@@ -1,12 +1,15 @@
-import { Button, Title, Grid } from '@mantine/core'
-import { useLocalStorage } from '@mantine/hooks'
+import { Button, Title, Grid, Modal, TextInput, Group, Text } from '@mantine/core'
 import { useState } from 'react'
 import { ProjectDevice } from './Device'
 import { DeviceCard } from './Components/DeviceCard'
 import { DiscoveredDeviceCard } from './Scan/DiscoveredDeviceCard'
 import { DiscoveredDevice, scanForDevices } from './Scan/Scan'
 import { ScanModal } from './Scan/ScanModal'
-import { trpc } from '../trpc/TRPCProvider'
+import { trpc } from "../trpc/TRPCProvider";
+import { DevicesList } from "../../../server/src/db/controllers/devices";
+import { useDisclosure } from '@mantine/hooks'
+import { useForm } from '@mantine/form'
+import { create } from 'domain'
 
 const getHighestDeviceNumber = (devices: Array<ProjectDevice>, searchString: string) => {
 	const deviceNumbers = devices.map(device => {
@@ -21,30 +24,77 @@ const getHighestDeviceNumber = (devices: Array<ProjectDevice>, searchString: str
 	return Math.max(...deviceNumbers)
 }
 
-export const Devices = () => {
-	const [discoveredDevices, setDiscoveredDevices] = useState<Array<DiscoveredDevice>>([])
-	const [projectDevices, setProjectDevices] = useLocalStorage<Array<ProjectDevice>>({
-		key: 'project-devices',
-		defaultValue: [],
+export const ManualAddDeviceModal = () => {
+	const [opened, { open, close }] = useDisclosure(false);
+	const createDevice = trpc.devices.create.useMutation();
+	const form = useForm({
+		initialValues: {
+			ip: '',
+		},
+		validate: {
+			ip: (value) => {
+				if (!value) return 'IP Address is required'
+				if (!/^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/.test(value)) return 'Invalid IP Address'
+				else return null
+			},
+		},
 	})
+	return (
+		<>
+			<Modal opened={opened} onClose={close} title="Add new Device" centered>
+				<form onSubmit={form.onSubmit((values) => {
+					createDevice.mutate({ ip: values.ip, name: 'Device' })
+					close()
+				})}>
+					<TextInput
+						label="IP Address"
+						description="Enter the IP Address of the Device to Add"
+						placeholder=""
+						{...form.getInputProps('ip')}
+					/>
+					<Group justify="flex-end" mt="lg">
+						<Button type="submit" variant="outline">
+							Add Device
+						</Button>
+					</Group>
+				</form>
+			</Modal>
+			<Button onClick={open}>Add Device</Button>
+		</>
+	)
+};
+
+export const Devices = () => {
 	const [scanModalShow, setScanModalShow] = useState(false)
 	const [scanningForDevices, setScanningForDevices] = useState(false)
 
-
+	const [devices, setDevices] = useState<DevicesList | false>(false);
+	trpc.devices.sub.useSubscription(undefined, {
+		onStarted() {
+			console.log("[Devices subscription] Connected");
+		},
+		onData(data) {
+			setDevices(data.devices);
+		},
+		onError(err) {
+			console.error('[Devices Subscription]', err);
+		}
+	});
+	if (!devices) return <Text>Loading...</Text>
 	return (
 		<>
 			<Title order={1}>Project Devices</Title>
 			<Grid columns={12} my={'lg'}>
-				{projectDevices
-					.sort((a, b) => a.sort - b.sort)
+				{devices && devices
+				//.sort((a, b) => a.channel - b.channel)
 					.map((device, i) => (
 						<Grid.Col xs={12} sm={6} md={4} lg={3} xl={2} key={i}>
-							<DeviceCard {...device} />
+							<DeviceCard device={device} />
 						</Grid.Col>
 					))}
 			</Grid>
 			<Title order={1}>Discovered Devices</Title>
-			<Grid columns={12} my={'lg'}>
+			{/*<Grid columns={12} my={'lg'}>
 				{discoveredDevices.map((device, i) => (
 					<Grid.Col xs={12} sm={6} md={4} lg={3} xl={2} key={i}>
 						<DiscoveredDeviceCard
@@ -72,8 +122,8 @@ export const Devices = () => {
 						/>
 					</Grid.Col>
 				))}
-			</Grid>
-			<Button
+						</Grid>*/}
+			{/*<Button
 				onClick={() =>
 					setProjectDevices([
 						...projectDevices,
@@ -111,7 +161,8 @@ export const Devices = () => {
 						setScanningForDevices(false)
 					})
 				}}
-			/>
+			/>*/}
+			<ManualAddDeviceModal />
 		</>
 	)
 }

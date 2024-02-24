@@ -1,16 +1,9 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 import { useState, useEffect } from "react";
 import { Button, Grid, Stack, Avatar, Card, Text } from "@mantine/core";
-import { useLocalStorage } from "@mantine/hooks";
 import { ProjectDevice } from "../Devices/Device";
-import {
-  PossibleDeviceStates,
-  useDeviceStatus,
-  useDeviceStatusDispatch,
-} from "../contexts/DeviceStatusReducer";
 import { IconCheck } from "@tabler/icons-react";
-import axios from "axios";
 import { trpc } from "../trpc/TRPCProvider";
+import { DevicesList } from "../../../server/src/db/controllers/devices";
 
 const DURATION_TO_HOLD_GO = 2000;
 
@@ -26,14 +19,7 @@ const communicateStatusToDevice = (
       }, 100);
     });
   } else {
-    return axios
-      .get(`http://${device.ip}/set/`, { responseType: "json" })
-      .then((response) => {
-        return true;
-      })
-      .catch((error) => {
-        return false;
-      });
+
   }
 };
 
@@ -353,26 +339,34 @@ const MasterChannel = () => {
 };
 
 export const Operate = () => {
-  const [projectDevices] = useLocalStorage<Array<ProjectDevice>>({
-    key: "project-devices",
-    defaultValue: [],
+  const [devices, setDevices] = useState<DevicesList | false>(false);
+  trpc.devices.sub.useSubscription(undefined, {
+    onStarted() {
+      console.log("[Devices subscription] Connected");
+    },
+    onData(data) {
+      setDevices(data.devices);
+    },
+    onError(err) {
+      console.error('[Devices Subscription]', err);
+    }
   });
+  //trpc.devices.get.useQuery(); // Trigger the query to get the devices
 
-
-
-  if (projectDevices.length === 0)
+  if (devices === false) return <div>Loading...</div>;
+  if (devices.length === 0)
     return <div>Setup your devices in the Devices tab</div>;
   return (
     <Grid justify="center" columns={12} gutter="sm">
       <Grid.Col xs={12} sm={6} md={4} lg={3} xl={2}>
         <MasterChannel />
       </Grid.Col>
-      {projectDevices
-        .filter((device) => device.disabled === false)
-        .sort((a, b) => a.sort - b.sort)
+      {devices
+        .filter((device) => device.hidden === false)
+      //.sort((a, b) => a.channel - b.channel)
         .map((device, i) => (
           <Grid.Col xs={12} sm={6} md={4} lg={3} xl={2} key={i}>
-            <Channel device={device} />
+            {device.name}
           </Grid.Col>
         ))}
     </Grid>

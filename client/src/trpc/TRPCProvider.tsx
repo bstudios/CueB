@@ -2,7 +2,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createWSClient, httpBatchLink, splitLink, wsLink } from "@trpc/client";
 import { createTRPCReact } from "@trpc/react-query";
 import { ReactNode, useState } from "react";
-import type { AppRouter } from "../../../server/src/webServer/server";
+import type { AppRouter } from "../../../server/src/server";
 export const trpc = createTRPCReact<AppRouter>();
 // TODO change the hardcoded address of the server
 export const TRPCProvider = ({ children }: { children?: ReactNode }) => {

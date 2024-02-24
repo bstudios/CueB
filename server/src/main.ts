@@ -1,6 +1,6 @@
 import { app, BrowserWindow, Menu } from "electron";
 import path from "path";
-import { server } from "./webServer/server";
+import { server } from "./server";
 import { Database } from "./db/database";
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
