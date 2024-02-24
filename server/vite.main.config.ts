@@ -9,7 +9,7 @@ export default defineConfig({
   },
   build: {
     rollupOptions: {
-      external: ["serialport", "better-sqlite3", "ws"],
+      external: ["better-sqlite3", "ws", "node-osc"],
     },
   },
 });

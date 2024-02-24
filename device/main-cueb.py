@@ -40,11 +40,11 @@ BUTTONS = [{
             }
         ]
 LEDS = [{
-                'pin': 10,
+                'pin': 13,
                 'name': "OUTSTATION-STANDBY",
                 'flashFrequency': 250,
             },{
-                'pin': 13,
+                'pin': 10,
                 'name': "OUTSTATION-GO",
                 'flashFrequency': 250,
             },
@@ -85,12 +85,16 @@ def translateState(stateInt):
         return "Acknowledged Go"
     elif (stateInt == 6):
         return "Panic/Vegas"
+    elif (stateInt == 7):
+        return "Identify/Flash"
     else:
         return "Unknown"
 
 def setState(newState):
     global state
+    print("[STATE] State changed from ", translateState(state), "to", translateState(newState))
     state = newState
+    transmitState()
     if (newState == 1):
         LEDOff(getLEDIdByName("OUTSTATION-STANDBY"))
         LEDOff(getLEDIdByName("OUTSTATION-GO"))
@@ -109,17 +113,21 @@ def setState(newState):
     elif (newState == 6):
         LEDOn(getLEDIdByName("OUTSTATION-STANDBY"))
         LEDOn(getLEDIdByName("OUTSTATION-GO"))
-    print("[STATE] State changed to", translateState(state))
+    elif (newState == 7):
+        LEDOn(getLEDIdByName("OUTSTATION-STANDBY"))
+        LEDOn(getLEDIdByName("OUTSTATION-GO"))
 
+def transmitState():
+    oscClient.send("/cueb/outstationState/" + deviceUniqueId, state)
 
 '''
 Setup Buttons & LEDs - Interrupts
 '''
 def buttonPress(data):
-    if (data[0] == "OUTSTATION-STANDBY"):
+    if (str(data) == "OUTSTATION-STANDBY"):
         if (state == 2):
             setState(3)
-    elif(data[0] == "OUTSTATION-GO"):
+    elif(str(data) == "OUTSTATION-GO"):
         if (state == 4):
             setState(5)
 
@@ -128,7 +136,7 @@ def buttonRelease(data):
 def buttonLong(data):
     print("Button long", data)
 def buttonDoubleClick(data):
-    if (data[0] == "OUTSTATION-GO"):
+    if (str(data) == "OUTSTATION-GO"):
         if (state == 6):
             setState(1)
         elif (state != 0):
@@ -408,7 +416,7 @@ OSC
 
 MAX_DGRAM_SIZE = 1472
 async def oscServer(host, port, cb, **params):
-    print("[OSC] Starting UDP server")
+    print("[OSC] Starting UDP server listening on",host)
     ai = socket.getaddrinfo(host, port)[0]  # blocking!
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.setblocking(False)
@@ -445,10 +453,7 @@ async def oscServer(host, port, cb, **params):
 async def broadcastState():
     while True:
         await asyncio.sleep_ms(100)
-        oscClient.send("/cueb/outstationstate", deviceUniqueId, "state")
-
-async def sendMessage(text="None"):
-    oscClient.send("/cueb/message/2", deviceUniqueId, text)
+        transmitState()
 
 asyncio.create_task(broadcastState())
 
@@ -460,11 +465,16 @@ Function that handles receipt of an OSC message
 '''
 def oscMessageRecieved(timetag, data):
     oscaddr, tags, args, src = data
-    
-    print(oscaddr)
-    print(tags)
-    print(args)
-    print(src)
+    if (oscaddr == "/cueb/setOutstationState/" and len(args) == 1 and tags == "f"):
+        if (state != int(args[0])):
+            print("[OSC] Recieved state message from", src, "with state", int(args[0]))
+            setState(int(args[0]))
+    elif (oscaddr.startswith("/reply/") != True):
+        print(oscaddr)
+        print(tags)
+        print(args)
+        print(len(args))
+        print(src)
     #asyncio.create_task(sendMessage(args[1]))
 
 oscClient = Client(deviceBroadcastAddress, int(configStore.getConfig("osc-sendport")))
@@ -474,7 +484,8 @@ oscClient = Client(deviceBroadcastAddress, int(configStore.getConfig("osc-sendpo
 '''
 
 try:
-    asyncio.run(oscServer(deviceRoutingPrefix, int(configStore.getConfig("osc-recieveport")), handle_request, dispatch=oscMessageRecieved))
+    # To listen to OSC broadcast instead, change to asyncio.run(oscServer(deviceRoutingPrefix, int(configStore.getConfig("osc-recieveport")), handle_request, dispatch=oscMessageRecieved))
+    asyncio.run(oscServer(deviceIp, int(configStore.getConfig("osc-recieveport")), handle_request, dispatch=oscMessageRecieved))
 except KeyboardInterrupt:
     setState(0)
     pass

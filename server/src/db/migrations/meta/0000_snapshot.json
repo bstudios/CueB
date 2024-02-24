@@ -1,7 +1,7 @@
 {
   "version": "5",
   "dialect": "sqlite",
-  "id": "85081d4a-ec13-4261-8254-76fe7159faca",
+  "id": "68d4775c-96d6-4c1f-90c7-b560ca18aac6",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "channels": {
@@ -51,6 +51,14 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
+        },
+        "devices.port": {
+          "name": "devices.port",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "53001"
         },
         "devices.name": {
           "name": "devices.name",

@@ -7,6 +7,7 @@ CREATE TABLE `channels` (
 CREATE TABLE `devices` (
 	`devices.id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`devices.ip` text NOT NULL,
+	`devices.port` integer DEFAULT 53001 NOT NULL,
 	`devices.name` text,
 	`devices.location` text,
 	`devices.hidden` integer DEFAULT false NOT NULL,

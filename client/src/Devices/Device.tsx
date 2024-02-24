@@ -4,20 +4,6 @@ import { IconArrowLeft } from '@tabler/icons-react'
 
 import { Link, Navigate, useParams } from 'react-router-dom'
 
-export interface ProjectDevice {
-	name: string
-	location?: string
-	ip: string
-	emulated: boolean
-	version: string
-	type: string
-	sort: number
-	disabled: boolean
-	config: {
-		autoAcknowledgeStandby: boolean // Emulated devices and traffic light style devices will automatically acknowledge standby, as they don't have a button to interact with
-	}
-}
-
 export const Device = () => {
 	const [projectDevices, setProjectDevices] = useLocalStorage<Array<ProjectDevice>>({
 		key: 'project-devices',

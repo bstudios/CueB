@@ -9,6 +9,9 @@ export const devices = sqliteTable("devices", {
     })
     .notNull(),
   ip: text("devices.ip").notNull(),
+  port: integer("devices.port")
+    .default(sql`53001`)
+    .notNull(),
   name: text("devices.name"),
   location: text("devices.location"),
   hidden: integer("devices.hidden", { mode: "boolean" })

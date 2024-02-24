@@ -2,6 +2,8 @@ import { app, BrowserWindow, Menu } from "electron";
 import path from "path";
 import { server } from "./server";
 import { Database } from "./db/database";
+import { OSC } from "./osc";
+import { getDevices } from "./db/controllers/devices";
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require("electron-squirrel-startup")) {
@@ -19,7 +21,14 @@ const createWindow = () => {
   });
 
   new Database();
+  new OSC([53000]);
   server.listen(2022);
+
+  getDevices().then((devices) => {
+    devices.forEach((device) => {
+      OSC.createClient(device.id, device.ip, device.port);
+    });
+  });
 
   const name = app.getName();
   app.setAboutPanelOptions({

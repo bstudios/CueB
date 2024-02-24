@@ -1,27 +1,10 @@
 import { useState, useEffect } from "react";
 import { Button, Grid, Stack, Avatar, Card, Text } from "@mantine/core";
-import { ProjectDevice } from "../Devices/Device";
 import { IconCheck } from "@tabler/icons-react";
 import { trpc } from "../trpc/TRPCProvider";
-import { DevicesList } from "../../../server/src/db/controllers/devices";
+import { Device, DevicesList } from "../../../server/src/db/controllers/devices";
 
 const DURATION_TO_HOLD_GO = 2000;
-
-const communicateStatusToDevice = (
-  device: ProjectDevice,
-  state: PossibleDeviceStates
-) => {
-  if (device.emulated) {
-    return new Promise((resolve) => {
-      // Emulate the delay of a network connection
-      setTimeout(() => {
-        resolve(true);
-      }, 100);
-    });
-  } else {
-
-  }
-};
 
 const secondsToTime = (milliseconds: number) => {
   const secs = milliseconds / 1000;
@@ -34,7 +17,8 @@ const secondsToTime = (milliseconds: number) => {
   else return hours + "h" + minutes + "m";
 };
 
-const Channel = (props: { device: ProjectDevice }) => {
+const DeviceChannelDisplay = (props: { device: Device, status: number | false }) => {
+  const setState = trpc.devices.setState.useMutation();
   const [time, setTime] = useState(Date.now());
   useEffect(() => {
     const interval = setInterval(() => setTime(Date.now()), 1000);
@@ -43,22 +27,13 @@ const Channel = (props: { device: ProjectDevice }) => {
     };
   }, []);
 
-  const devices = useDeviceStatus();
-  const deviceStatus = devices[props.device.ip];
-  const setDeviceStatus = useDeviceStatusDispatch();
-  useEffect(() => {
-    if (!deviceStatus) {
-      setDeviceStatus({ type: "ADD_DEVICE", id: props.device.ip });
-    }
-  }, [deviceStatus, setDeviceStatus, props.device.ip]);
-
-  if (!deviceStatus) return null;
+  if (!props.device) return null;
   return (
     <Card>
       <Text weight={500} ta="center" mb="md">
-        {props.device.name}
+        {props.device.name} {props.device.ip}
       </Text>
-      {deviceStatus.connected ? (
+      {props.status !== false ? (
         <Stack justify="flex-start" spacing="lg">
           <Button
             size="xl"
@@ -69,9 +44,9 @@ const Channel = (props: { device: ProjectDevice }) => {
             color="red"
             loaderPosition="left"
             loaderProps={{ variant: "dots" }}
-            loading={deviceStatus.loading}
+            loading={false}
             styles={(theme) =>
-              deviceStatus.state === "await-standby"
+              props.status === 2
                 ? {
                     root: {
                       animation:
@@ -85,63 +60,37 @@ const Channel = (props: { device: ProjectDevice }) => {
                         }) + " 1s infinite",
                     },
                   }
-                : deviceStatus.state !== "acknowledged-standby"
+                : props.status !== 3
                 ? { root: { opacity: 0.5 } }
                 : {}
             }
             rightIcon={
-              deviceStatus.state === "await-standby" ? (
+              props.status === 2 ? (
                 <Avatar variant="filled" radius="xl" color="orange">
-                  {secondsToTime(time - deviceStatus.stateLastChanged)}
+                  {secondsToTime(100)}
                 </Avatar>
-              ) : deviceStatus.state === "acknowledged-standby" ? (
+              ) : props.status === 3 ? (
                 <Avatar variant="filled" radius="xl" color="green">
                   <IconCheck />
                 </Avatar>
               ) : null
             }
             onClick={() => {
-              let newState: PossibleDeviceStates = "await-standby";
+              let newState = 2;
               if (
-                deviceStatus.state === "await-standby" ||
-                deviceStatus.state === "acknowledged-standby"
+                props.status === 2 ||
+                props.status === 3
               ) {
-                newState = "blank";
+                newState = 3;
               }
-              setDeviceStatus({
-                type: "SET_DEVICE_LOADING",
-                id: props.device.ip,
-                newLoading: true,
-              });
-              communicateStatusToDevice(props.device, newState).then(
-                (success) => {
-                  setDeviceStatus({
-                    type: "SET_DEVICE_LOADING",
-                    id: props.device.ip,
-                    newLoading: false,
-                  });
-                  if (success) {
-                    setDeviceStatus({
-                      type: "SET_DEVICE_STATE",
-                      id: props.device.ip,
-                      newState,
-                    });
-                  } else {
-                    setDeviceStatus({
-                      type: "SET_DEVICE_CONNECTED",
-                      id: props.device.ip,
-                      newConnected: false,
-                    });
-                  }
-                }
-              );
+              setState.mutate({ id: props.device.id, newState: newState })
             }}
           >
             Standby
           </Button>
           <Button
-            rightIcon={
-              deviceStatus.preset === null ? null : (
+            rightSection={
+              false ? null : (
                 <Avatar variant="filled" radius="xl" color="dark">
                   <IconCheck />
                 </Avatar>
@@ -155,14 +104,10 @@ const Channel = (props: { device: ProjectDevice }) => {
             color="orange"
             loaderPosition="left"
             styles={(theme) =>
-              deviceStatus.preset === null ? { root: { opacity: 0.6 } } : {}
+              false ? { root: { opacity: 0.6 } } : {}
             }
             onClick={() => {
-              setDeviceStatus({
-                type: "SET_DEVICE_PRESET",
-                id: props.device.ip,
-                newPreset: deviceStatus.preset === null ? 1 : null,
-              });
+              console.log("CLicked")
             }}
           >
             Preset
@@ -174,85 +119,18 @@ const Channel = (props: { device: ProjectDevice }) => {
             fullWidth
             type="button"
             color="green"
-            loading={deviceStatus.loading}
+            loading={false}
             styles={(theme) =>
-              deviceStatus.state !== "go" ? { root: { opacity: 0.6 } } : {}
+              props.status !== 4 ? { root: { opacity: 0.6 } } : {}
             }
             loaderPosition="left"
             loaderProps={{ variant: "dots" }}
             onClick={() => {
-              let newState: PossibleDeviceStates = "go";
-              if (deviceStatus.state === "go") {
-                newState = "blank";
+              let newState = 4
+              if (props.status === 4) {
+                newState = 1;
               }
-              setDeviceStatus({
-                type: "SET_DEVICE_LOADING",
-                id: props.device.ip,
-                newLoading: true,
-              });
-              communicateStatusToDevice(props.device, newState).then(
-                (success) => {
-                  setDeviceStatus({
-                    type: "SET_DEVICE_LOADING",
-                    id: props.device.ip,
-                    newLoading: false,
-                  });
-                  if (success) {
-                    setDeviceStatus({
-                      type: "SET_DEVICE_STATE",
-                      id: props.device.ip,
-                      newState,
-                    });
-                    // TODO - tidy up this logic
-                    if (newState === "go") {
-                      new Promise((resolve) => {
-                        // Wait until clearing the go state and reverting to blank
-                        setTimeout(() => {
-                          resolve(true);
-                        }, DURATION_TO_HOLD_GO);
-                      }).then(() => {
-                        // Recheck the state after a delay to ensure it hasn't changed
-                        if (deviceStatus.state === "go") {
-                          setDeviceStatus({
-                            type: "SET_DEVICE_LOADING",
-                            id: props.device.ip,
-                            newLoading: true,
-                          });
-                          communicateStatusToDevice(
-                            props.device,
-                            newState
-                          ).then((success) => {
-                            setDeviceStatus({
-                              type: "SET_DEVICE_LOADING",
-                              id: props.device.ip,
-                              newLoading: false,
-                            });
-                            if (success) {
-                              setDeviceStatus({
-                                type: "SET_DEVICE_STATE",
-                                id: props.device.ip,
-                                newState: "blank",
-                              });
-                            } else {
-                              setDeviceStatus({
-                                type: "SET_DEVICE_CONNECTED",
-                                id: props.device.ip,
-                                newConnected: false,
-                              });
-                            }
-                          });
-                        }
-                      });
-                    }
-                  } else {
-                    setDeviceStatus({
-                      type: "SET_DEVICE_CONNECTED",
-                      id: props.device.ip,
-                      newConnected: false,
-                    });
-                  }
-                }
-              );
+              setState.mutate({ id: props.device.id, newState: newState })
             }}
           >
             Go
@@ -266,14 +144,7 @@ const Channel = (props: { device: ProjectDevice }) => {
 };
 
 const MasterChannel = () => {
-  const devices = useDeviceStatus();
-  const setDeviceStatus = useDeviceStatusDispatch();
   const devicesInPreset1: Array<string> = [];
-  Object.keys(devices).forEach((device) => {
-    if (devices[device].preset === 1 && devices[device].connected) {
-      devicesInPreset1.push(device);
-    }
-  });
   return (
     <Card>
       <Text weight={500} ta="center" mb="md">
@@ -340,6 +211,7 @@ const MasterChannel = () => {
 
 export const Operate = () => {
   const [devices, setDevices] = useState<DevicesList | false>(false);
+  const [deviceStatus, setDeviceStatus] = useState<{ [deviceId: number]: number | false }>({});
   trpc.devices.sub.useSubscription(undefined, {
     onStarted() {
       console.log("[Devices subscription] Connected");
@@ -349,6 +221,17 @@ export const Operate = () => {
     },
     onError(err) {
       console.error('[Devices Subscription]', err);
+    }
+  });
+  trpc.devices.subStatus.useSubscription(undefined, {
+    onStarted() {
+      console.log("[Devices status subscription] Connected");
+    },
+    onData(data) {
+      setDeviceStatus(data);
+    },
+    onError(err) {
+      console.error('[Devices status Subscription]', err);
     }
   });
   //trpc.devices.get.useQuery(); // Trigger the query to get the devices
@@ -366,7 +249,7 @@ export const Operate = () => {
       //.sort((a, b) => a.channel - b.channel)
         .map((device, i) => (
           <Grid.Col xs={12} sm={6} md={4} lg={3} xl={2} key={i}>
-            {device.name}
+            <DeviceChannelDisplay device={device} status={deviceStatus[device.id]} />
           </Grid.Col>
         ))}
     </Grid>

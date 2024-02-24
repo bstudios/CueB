@@ -10,8 +10,14 @@ import { z } from "zod";
 import cors from "cors";
 import { devices } from "./db/schema/devices";
 import { Database } from "./db/database";
-import { DevicesList, getDevices } from "./db/controllers/devices";
+import {
+  DevicesList,
+  createDevice,
+  deleteDevice,
+  getDevices,
+} from "./db/controllers/devices";
 import { eq } from "drizzle-orm";
+import { OSC } from "./osc";
 
 // TODO split this up into files
 function createContext(
@@ -46,15 +52,13 @@ const connectionStatusRouter = router({
 
 const devicesRouter = router({
   get: publicProcedure.query(() => {
-    eventEmitter.emit("devices");
+    eventEmitter.emit("trpc.devices");
     return {};
   }),
   sub: publicProcedure.subscription(() => {
     return observable<{ devices: DevicesList }>((emit) => {
       const broadcast = () => {
         getDevices().then((DevicesList) => {
-          console.log("broadcasting");
-          console.log(DevicesList);
           emit.next({ devices: DevicesList });
         });
       };
@@ -62,11 +66,11 @@ const devicesRouter = router({
       // When client joins, send them the current devices
       broadcast();
 
-      eventEmitter.on("devices", () => {
+      eventEmitter.on("trpc.devices", () => {
         broadcast();
       });
       return () => {
-        eventEmitter.off("devices", broadcast);
+        eventEmitter.off("trpc.devices", broadcast);
       };
     });
   }),
@@ -77,16 +81,39 @@ const devicesRouter = router({
         name: z.string(),
       })
     )
-    .mutation(({ input }) => {
-      Database.db.insert(devices).values(input).execute();
-      eventEmitter.emit("devices");
+    .mutation(async ({ input }) => {
+      await createDevice(input);
+      eventEmitter.emit("trpc.devices");
       return {};
     }),
   delete: publicProcedure
     .input(z.object({ id: z.number() }))
     .mutation(({ input }) => {
-      Database.db.delete(devices).where(eq(devices.id, input.id)).execute();
-      eventEmitter.emit("devices");
+      deleteDevice(input.id);
+      eventEmitter.emit("trpc.devices");
+      return {};
+    }),
+  subStatus: publicProcedure.subscription(() => {
+    return observable<{ [deviceId: number]: number | false }>((emit) => {
+      const broadcast = () => {
+        emit.next(OSC.deviceStatus);
+      };
+
+      // When client joins, send them the current devices
+      broadcast();
+
+      eventEmitter.on("trpc.deviceStatus", () => {
+        broadcast();
+      });
+      return () => {
+        eventEmitter.off("trpc.deviceStatus", broadcast);
+      };
+    });
+  }),
+  setState: publicProcedure
+    .input(z.object({ id: z.number(), newState: z.number() }))
+    .mutation(({ input }) => {
+      OSC.messageDevice(input.id, "/cueb/setOutstationState/", input.newState);
       return {};
     }),
 });
