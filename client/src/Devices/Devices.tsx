@@ -1,14 +1,24 @@
-import { Button, Title, Grid, Modal, TextInput, Group, Text, NumberInput } from '@mantine/core'
+import { Button, Title, Grid, Modal, TextInput, Group, NumberInput, Loader } from '@mantine/core'
 import { useState } from 'react'
 import { DeviceCard } from './Components/DeviceCard'
 import { trpc } from "../trpc/TRPCProvider";
 import { DevicesList } from "../../../server/src/db/controllers/devices";
 import { useDisclosure } from '@mantine/hooks'
 import { useForm } from '@mantine/form'
+import { notifications } from '@mantine/notifications';
 
 export const ManualAddDeviceModal = () => {
 	const [opened, { open, close }] = useDisclosure(false);
-	const createDevice = trpc.devices.create.useMutation();
+	const createDevice = trpc.devices.create.useMutation({
+		onError: (error) => {
+			notifications.show({
+				title: 'Error',
+				message: error.message,
+				color: 'red',
+				autoClose: 5000,
+			})
+		},
+	});
 	const form = useForm({
 		initialValues: {
 			ip: '',
@@ -67,7 +77,7 @@ export const Devices = () => {
 			console.error('[Devices Subscription]', err);
 		}
 	});
-	if (!devices) return <Text>Loading...</Text>
+	if (!devices) return <Loader size="xl" type="dots" />
 	return (
 		<>
 			<Title order={1}>Project Devices</Title>

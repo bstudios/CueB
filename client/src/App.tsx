@@ -10,7 +10,7 @@ function App() {
       <TRPCProvider>
         <ColorSchemeScript defaultColorScheme="auto" />
         <MantineProvider defaultColorScheme="auto">
-          <Notifications position={"bottom-right"} />
+          <Notifications position={"top-right"} />
           <Router />
         </MantineProvider>
       </TRPCProvider>

@@ -3,13 +3,15 @@ import { createWSClient, httpBatchLink, splitLink, wsLink } from "@trpc/client";
 import { createTRPCReact } from "@trpc/react-query";
 import { ReactNode, useState } from "react";
 import type { AppRouter } from "../../../server/src/server";
+import { readLocalStorageValue } from "@mantine/hooks";
 export const trpc = createTRPCReact<AppRouter>();
 // TODO change the hardcoded address of the server
 export const TRPCProvider = ({ children }: { children?: ReactNode }) => {
+  const serverAddress = readLocalStorageValue({ key: "serverAddress", defaultValue: window.location.hostname + ":" + window.location.port });
   const [queryClient] = useState(() => new QueryClient());
   const [wsClient] = useState(() =>
     createWSClient({
-      url: "ws://localhost:2022",
+      url: `ws://${serverAddress}`,
       onOpen: () => console.log("Socket Connected"),
       onClose: () => console.log("Socket Disconnected"),
     })
@@ -25,7 +27,7 @@ export const TRPCProvider = ({ children }: { children?: ReactNode }) => {
             client: wsClient,
           }),
           false: httpBatchLink({
-            url: `http://localhost:2022/api`,
+            url: `http://${serverAddress}/api`,
           }),
         }),
       ],

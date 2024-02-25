@@ -5,7 +5,8 @@ import { createServer } from "http";
 import type { CreateWSSContextFnOptions } from "@trpc/server/adapters/ws";
 import { applyWSSHandler } from "@trpc/server/adapters/ws";
 import { observable } from "@trpc/server/observable";
-import { EventEmitter, WebSocketServer } from "ws";
+import { WebSocketServer } from "ws";
+import { EventEmitter } from 'events';
 import { z } from "zod";
 import cors from "cors";
 import {
@@ -18,8 +19,7 @@ import {
 import { OSC } from "./osc";
 
 function createContext(
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  opts: CreateHTTPContextOptions | CreateWSSContextFnOptions
+  _opts: CreateHTTPContextOptions | CreateWSSContextFnOptions
 ) {
   return {};
 }

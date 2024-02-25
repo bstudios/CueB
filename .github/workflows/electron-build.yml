@@ -1,0 +1,42 @@
+name: Build Electron Packages
+
+on:
+  pull_request:
+    branches: ["Gen2"]
+  push:
+    branches: ["Gen2"]
+
+jobs:
+  generateClientCode:
+    uses: ./.github/workflows/build-client.yml
+  build:
+    name: Build
+    needs: generateClientCode
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: ./server
+    strategy:
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: npm
+      - run: npm install
+      - if: matrix.os == 'windows-latest'
+        uses: microsoft/setup-msbuild@v1.1
+      - name: Download math result for job 1
+        uses: actions/download-artifact@v4
+        with:
+          name: client-dist
+          path: public
+      - run: npm run make
+      - uses: actions/upload-artifact@v3
+        with:
+          name: package-${{ matrix.os }}
+          path: out/make/**/*.*
+          retention-days: 20
+          if-no-files-found: error

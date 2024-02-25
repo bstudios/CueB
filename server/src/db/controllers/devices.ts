@@ -72,7 +72,7 @@ export const syncDevice = async (id: number) => {
     .from(devices)
     .limit(1)
     .where(eq(devices.id, id));
-  if (deviceIp.length !== 1) return false;
+  if (deviceIp.length !== 1) throw new Error("Device does not exist");
   const ip = deviceIp[0].ip;
   const deviceResponse = await fetch(`http://${ip}:80/about.json`, {
     method: "GET",
@@ -83,22 +83,32 @@ export const syncDevice = async (id: number) => {
     redirect: "follow",
     referrerPolicy: "no-referrer",
   });
-  if (!deviceResponse.ok) return false;
+  if (!deviceResponse.ok) throw new Error("Could not connect to device");
   const deviceResponseJson = await deviceResponse.json();
-  if (!deviceResponseJson) return false;
+  if (!deviceResponseJson)
+    throw new Error("Could not interpret device response");
   const schema = z.object({
     config: z.object({
-      name: z.string(),
-      "osc-recieveport": z.number(),
+      name: z.object({
+        value: z.string(),
+      }),
+      "osc-recieveport": z.object({
+        value: z.coerce.number(),
+      }),
     }),
   });
+  console.log(deviceResponseJson);
   const deviceData = schema.safeParse(deviceResponseJson);
-  if (!deviceData.success) return false;
+  if (!deviceData.success)
+    throw new Error(
+      "Could not interpret device response correctly + " +
+        deviceData.error.message
+    );
   await Database.db
     .update(devices)
     .set({
-      name: deviceData.data.config.name,
-      port: deviceData.data.config["osc-recieveport"],
+      name: deviceData.data.config.name.value,
+      port: deviceData.data.config["osc-recieveport"].value,
     })
     .where(eq(devices.id, id))
     .execute();

@@ -17,7 +17,7 @@ import { CueList } from './Cues/CueList'
 import IconLandscape from './icon/icon-landscape.png'
 import { IconSun, IconMoon } from '@tabler/icons-react';
 import classes from './MainNav.module.css'
-import { ConnectionStatus } from './utils/ConnectionStatus'
+import { ConnectionStatus } from './Components/ConnectionStatus'
 const HEADER_HEIGHT = 70
 const FOOTER_HEIGHT = 60
 

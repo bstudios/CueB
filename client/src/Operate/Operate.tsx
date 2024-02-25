@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Button, Grid, Stack, Avatar, Card, Text, Alert } from "@mantine/core";
+import { Button, Grid, Stack, Avatar, Card, Text, Alert, Loader } from "@mantine/core";
 import { IconAlertTriangle, IconCheck, IconPlugConnectedX } from "@tabler/icons-react";
 import { trpc } from "../trpc/TRPCProvider";
 import { Device, DevicesList } from "../../../server/src/db/controllers/devices";
@@ -22,7 +22,7 @@ const DeviceChannelDisplay = (props: { device: Device, status: number | false, d
       {props.status === 6 ? (
         <Alert color="red" title="Panic Mode" icon={<IconAlertTriangle />} mb="md">
           Outstation has been placed in panic mode by operator
-          <Button mt={10} size="lg" color="yellow" fullWidth={true} onClick={() => setState.mutate({ id: props.device.id, newState: 1 })}>
+          <Button mt={10} size="lg" color="yellow" fullWidth={true} onClick={() => props.device ? setState.mutate({ id: props.device.id, newState: 1 }) : null}>
             Reset
           </Button>
         </Alert>
@@ -31,7 +31,7 @@ const DeviceChannelDisplay = (props: { device: Device, status: number | false, d
       {props.status === 7 ? (
         <Alert color="yellow" title="Identify Mode" icon={<IconAlertTriangle />} mb="md">
           Outstation lights are blinking
-          <Button mt={10} size="lg" color="yellow" fullWidth={true} onClick={() => setState.mutate({ id: props.device.id, newState: 1 })}>
+          <Button mt={10} size="lg" color="yellow" fullWidth={true} onClick={() => props.device ? setState.mutate({ id: props.device.id, newState: 1 }) : null}>
             Reset
           </Button>
         </Alert>
@@ -67,7 +67,7 @@ const DeviceChannelDisplay = (props: { device: Device, status: number | false, d
               ) {
                 newState = 1;
               }
-              setState.mutate({ id: props.device.id, newState: newState })
+              if (props.device) setState.mutate({ id: props.device.id, newState: newState })
             }}
           >
             Standby
@@ -91,10 +91,12 @@ const DeviceChannelDisplay = (props: { device: Device, status: number | false, d
               data-opacity={props.devicesInMasterChannel.includes(props.device.id) ? "false" : "true"}
             onClick={() => {
               props.setDevicesInMasterChannel((prevState) => {
-                if (prevState.includes(props.device.id)) {
-                  return prevState.filter((id) => id !== props.device.id);
-                }
-                return [...prevState, props.device.id];
+                if (props.device) {
+                  if (prevState.includes(props.device.id)) {
+                    return prevState.filter((id) => id !== props.device?.id);
+                  }
+                  return [...prevState, props.device?.id];
+                } else return prevState;
               });
             }}
           >
@@ -117,7 +119,7 @@ const DeviceChannelDisplay = (props: { device: Device, status: number | false, d
                 if (props.status === 5) {
                   newState = 1;
                 }
-                setState.mutate({ id: props.device.id, newState: newState })
+                if (props.device) setState.mutate({ id: props.device.id, newState: newState })
               }}
             >
             Go
@@ -228,9 +230,7 @@ export const Operate = () => {
       console.error('[Devices status Subscription]', err);
     }
   });
-  //trpc.devices.get.useQuery(); // Trigger the query to get the devices
-
-  if (devices === false) return <div>Loading...</div>;
+  if (devices === false) return <Loader size="xl" type="dots" />;
   if (devices.length === 0)
     return <div>Setup your devices in the Devices tab</div>;
   return (

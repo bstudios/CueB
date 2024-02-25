@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { trpc } from "../trpc/TRPCProvider";
+import { Badge } from "@mantine/core";
 
 
 export const ConnectionStatus = () => {
@@ -28,5 +29,6 @@ export const ConnectionStatus = () => {
     return () => clearInterval(interval);
   }, [lastHeardFromServer]);
 
-  return <div>{connected ? 'Connected' : 'Not'}</div>
+  if (!connected) return (<Badge color="red" fullWidth>Disconnected from Server</Badge>)
+  else return (<Badge variant="dot" color="green">Connected to Server</Badge>)
 }

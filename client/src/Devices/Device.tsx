@@ -1,4 +1,4 @@
-import { Text, Button } from '@mantine/core'
+import { Button, Loader } from '@mantine/core'
 import { IconArrowLeft } from '@tabler/icons-react'
 
 import { Link, Navigate, useParams } from 'react-router-dom'
@@ -21,7 +21,7 @@ export const Device = () => {
 			console.error('[Devices Subscription]', err);
 		}
 	});
-	if (!devices) return <Text>Loading...</Text>
+	if (!devices) return <Loader size="xl" type="dots" />
 
 	if (!params.deviceId || params.deviceId === undefined) return <Navigate to="/devices" />
 	const device = devices.find(device => device.id === Number(params.deviceId))

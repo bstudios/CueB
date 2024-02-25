@@ -5,7 +5,6 @@ import { useNavigate } from 'react-router-dom'
 import { Device } from '../../../../server/src/db/controllers/devices'
 import { trpc } from '../../trpc/TRPCProvider'
 import { notifications } from '@mantine/notifications'
-import { useCallback, useEffect, useRef, useState } from 'react'
 
 const DeviceBlinkButton = (props: { device: Device }) => {
 	const setState = trpc.devices.setState.useMutation();
@@ -15,12 +14,12 @@ const DeviceBlinkButton = (props: { device: Device }) => {
 			onClick={() => {
 				notifications.show({
 					title: 'Identify',
-					message: 'Blinking lights on ' + props.device.name,
+					message: 'Blinking lights on ' + props.device?.name,
 					autoClose: 5000,
 					withCloseButton: false,
 					loading: true,
 				})
-				setState.mutate({
+				if (props.device) setState.mutate({
 					id: props.device.id,
 					newState: 7
 				})
@@ -33,19 +32,28 @@ const DeviceBlinkButton = (props: { device: Device }) => {
 }
 
 const SyncDeviceButton = (props: { device: Device }) => {
-	const syncMutation = trpc.devices.requestSync.useMutation()
+	const syncMutation = trpc.devices.requestSync.useMutation({
+		onError: (error) => {
+			notifications.show({
+				title: 'Error',
+				message: error.message,
+				color: 'red',
+				autoClose: 5000,
+			})
+		}
+	})
 	return (
 		<Menu.Item
 			leftSection={<IconRefresh />}
 			onClick={() => {
 				notifications.show({
 					title: 'Fetching configuration',
-					message: 'Syncing ' + props.device.name,
+					message: 'Syncing ' + props.device?.name,
 					autoClose: 5000,
 					withCloseButton: false,
 					loading: true,
 				})
-				syncMutation.mutate({
+				if (props.device) syncMutation.mutate({
 					id: props.device.id
 				})
 			}
@@ -74,7 +82,7 @@ export const DeviceCard = (props: { device: Device }) => {
 				</Menu.Target>
 				<Menu.Dropdown>
 					<Menu.Label>Device</Menu.Label>
-					<Menu.Item leftSection={<IconPencil />} onClick={() => navigate("/devices/" + props.device.id)}>
+					<Menu.Item leftSection={<IconPencil />} onClick={() => navigate("/devices/" + props.device?.id)}>
 						Settings
 					</Menu.Item>
 					<DeviceBlinkButton device={props.device} />
@@ -83,7 +91,7 @@ export const DeviceCard = (props: { device: Device }) => {
 						color={'red'}
 						leftSection={<IconTrash />}
 						onClick={() => {
-							deleteDevice.mutate({ id: props.device.id })
+							if (props.device) deleteDevice.mutate({ id: props.device.id })
 						}}
 					>
 						Remove from Project
