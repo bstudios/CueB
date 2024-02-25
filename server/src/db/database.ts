@@ -18,7 +18,7 @@ export const createDatabase = () => {
     },
   });
   migrate(db, {
-    migrationsFolder: "src/db/migrations",
+    migrationsFolder: path.join(__dirname, "../../src/db/migrations/"),
   });
   console.log("Database initialized.");
   return db;
