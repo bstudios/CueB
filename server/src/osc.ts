@@ -8,6 +8,7 @@ const createOSCServer = (port: number) =>
   );
 
 export class OSC {
+  static listeningPorts: number[] = [];
   static servers: {
     [port: number]: ReturnType<typeof createOSCServer>;
   } = {};
@@ -28,6 +29,7 @@ export class OSC {
     };
   } = {};
   constructor(ports: number[]) {
+    OSC.listeningPorts = ports;
     for (const port of ports) {
       OSC.servers[port] = createOSCServer(port);
       OSC.servers[port].on("message", (msg, rinfo) => {
