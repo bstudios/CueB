@@ -348,6 +348,11 @@ async def route_aboutjson(request, response):
     await response._send_headers()
     await response.send(rtn)
 
+@app.route('/areyouacuebdevice')
+async def route_iscueb(request, response):
+    await response.start_html()
+    await response.send("cueb-outstation")
+
 def urldecode_query(s):
     """Decode urlencoded string (including '+' char).
 
@@ -533,9 +538,3 @@ try:
 except KeyboardInterrupt:
     setState(0)
     pass
-'''
-TODO
-- Set LEDs
-- Broadcast state all the time to keep clients in sync with the uid
-- Reply with config/name etc when requested
-'''
