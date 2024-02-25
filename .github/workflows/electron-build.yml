@@ -6,6 +6,10 @@ on:
   push:
     branches: ["Gen2"]
 
+concurrency: 
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+    
 jobs:
   generateClientCode:
     uses: ./.github/workflows/build-client.yml
@@ -38,6 +42,6 @@ jobs:
       - uses: actions/upload-artifact@v3
         with:
           name: package-${{ matrix.os }}
-          path: out/make/**/*.*
+          path: ./server/out/make/**/*.*
           retention-days: 20
           if-no-files-found: error
