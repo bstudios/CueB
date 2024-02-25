@@ -6,10 +6,8 @@ import * as devicesSchema from "./schema/devices";
 import * as channelsSchema from "./schema/channels";
 import * as relations from "./schema/relations";
 
-export const createDatabase = () => {
-  const sqlite = new BetterSQLite3DatabaseLib(
-    path.join(__dirname, "../../sqlite.db")
-  );
+export const createDatabase = (databaseAddress: string) => {
+  const sqlite = new BetterSQLite3DatabaseLib(databaseAddress);
   const db = drizzle(sqlite, {
     schema: {
       ...devicesSchema,
@@ -26,7 +24,7 @@ export const createDatabase = () => {
 
 export class Database {
   static db: ReturnType<typeof createDatabase>;
-  constructor() {
-    Database.db = createDatabase();
+  constructor(databaseAddress: string) {
+    Database.db = createDatabase(databaseAddress);
   }
 }

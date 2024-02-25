@@ -27,5 +27,18 @@
  */
 
 import "./assets/index.css";
+import { ServerAccessData } from "./utils/ServerAccessData";
 
-console.log('👋 This message is being logged by "renderer.ts", included via Vite');
+const webServerAddressDiv = document.getElementById("webserveraddress");
+
+window.electronAPI?.onGotServerAccessData((data: ServerAccessData) => {
+  console.log(data.IPAddress);
+  if (webServerAddressDiv !== null)
+    webServerAddressDiv.innerText =
+      "http://" +
+      data.IPAddress.toString() +
+      ":" +
+      data.WebServerPort.toString();
+  console.log(data);
+});
+window.electronAPI?.requestServerAccessData();

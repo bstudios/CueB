@@ -14,7 +14,7 @@
     }
   ],
   "settings": {
-    "cSpell.words": ["mantine", "tabler", "trpc"],
+    "cSpell.words": ["mantine", "portfinder", "tabler", "trpc"],
     "editor.formatOnSave": true
   },
   "extensions": {

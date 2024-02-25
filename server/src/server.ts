@@ -20,7 +20,7 @@ import {
   syncDevice,
 } from "./db/controllers/devices";
 import { OSC } from "./osc";
-import { mimeTypes } from "./mimeTypes";
+import { mimeTypes } from "./utils/mimeTypes";
 
 function createContext(
   _opts: CreateHTTPContextOptions | CreateWSSContextFnOptions
