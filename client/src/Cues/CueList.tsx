@@ -74,7 +74,7 @@ export function CueList() {
 	))
 	return (
 		<>
-			<AppShell.Section>Navbar header</AppShell.Section>
+			{/*<AppShell.Section>Navbar header</AppShell.Section>*/}
 			<AppShell.Section grow component={ScrollArea}>
 				{Cues}
 			</AppShell.Section>

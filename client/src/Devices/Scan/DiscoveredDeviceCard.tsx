@@ -1,4 +1,4 @@
-import { Text, Card, Button, Badge } from '@mantine/core'
+/**import { Text, Card, Button, Badge } from '@mantine/core'
 import { showNotification } from '@mantine/notifications'
 
 import { identifyDevice } from './IdentifyDevice'
@@ -39,3 +39,4 @@ export const DiscoveredDeviceCard = (props: {
 		</Button>
 	</Card>
 )
+*/

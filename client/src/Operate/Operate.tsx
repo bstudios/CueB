@@ -1,76 +1,51 @@
-import { useState, useEffect } from "react";
-import { Button, Grid, Stack, Avatar, Card, Text } from "@mantine/core";
-import { IconCheck } from "@tabler/icons-react";
+import { useState } from "react";
+import { Button, Grid, Stack, Avatar, Card, Text, Alert } from "@mantine/core";
+import { IconAlertTriangle, IconCheck, IconPlugConnectedX } from "@tabler/icons-react";
 import { trpc } from "../trpc/TRPCProvider";
 import { Device, DevicesList } from "../../../server/src/db/controllers/devices";
+import classes from "./Operate.module.css";
+import { Link } from "react-router-dom";
 
-const DURATION_TO_HOLD_GO = 2000;
-
-const secondsToTime = (milliseconds: number) => {
-  const secs = milliseconds / 1000;
-  console.log(milliseconds);
-  const hours = Math.floor(secs / (60 * 60));
-  const minutes = Math.floor((secs % (60 * 60)) / 60) - hours * 60;
-  const seconds = Math.floor(secs % 60) - hours * 60 * 60 - minutes * 60;
-  if (hours === 0 && minutes === 0) return seconds + "s";
-  if (hours === 0) return minutes + "m" + seconds + "s";
-  else return hours + "h" + minutes + "m";
-};
-
-const DeviceChannelDisplay = (props: { device: Device, status: number | false }) => {
+const DeviceChannelDisplay = (props: { device: Device, status: number | false, devicesInMasterChannel: number[], setDevicesInMasterChannel: React.Dispatch<React.SetStateAction<number[]>> }) => {
   const setState = trpc.devices.setState.useMutation();
-  const [time, setTime] = useState(Date.now());
-  useEffect(() => {
-    const interval = setInterval(() => setTime(Date.now()), 1000);
-    return () => {
-      clearInterval(interval);
-    };
-  }, []);
-
-  if (!props.device) return null;
+  if (!props.device || props.device === undefined || props.device.id === undefined) return null;
   return (
     <Card>
-      <Text weight={500} ta="center" mb="md">
+      <Text fw={500} ta="center" mb="md">
         {props.device.name} {props.device.ip}
       </Text>
-      {props.status !== false ? (
-        <Stack justify="flex-start" spacing="lg">
+      {props.status === false ? (
+        <Alert variant="transparent" title="Device Disconnected" icon={<IconPlugConnectedX />} mb="md">
+          Outstation is not responding - check the network connection of this device, or change the IP address in <Link to={"/devices/" + props.device.id}>device settings</Link>.
+        </Alert>
+      ) : null}
+      {props.status === 6 ? (
+        <Alert color="red" title="Panic Mode" icon={<IconAlertTriangle />} mb="md">
+          Outstation has been placed in panic mode by operator
+          <Button mt={10} size="lg" color="red" fullWidth={true} onClick={() => setState.mutate({ id: props.device.id, newState: 1 })}>
+            Reset
+          </Button>
+        </Alert>
+      ) : null
+      }
+      {
+        props.status !== false && props.status !== 6 && props.status !== 7 ? (
+          <Stack justify="flex-start" gap="lg">
           <Button
             size="xl"
-            uppercase
+              tt="uppercase"
             radius={0}
             fullWidth
             type="button"
-            color="red"
-            loaderPosition="left"
+              color="red"
             loaderProps={{ variant: "dots" }}
             loading={false}
-            styles={(theme) =>
-              props.status === 2
-                ? {
-                    root: {
-                      animation:
-                        keyframes({
-                          "0%, 49%": {
-                            opacity: 1,
-                          },
-                          "50%, 100%": {
-                            opacity: 0.2,
-                          },
-                        }) + " 1s infinite",
-                    },
-                  }
-                : props.status !== 3
-                ? { root: { opacity: 0.5 } }
-                : {}
-            }
-            rightIcon={
-              props.status === 2 ? (
-                <Avatar variant="filled" radius="xl" color="orange">
-                  {secondsToTime(100)}
-                </Avatar>
-              ) : props.status === 3 ? (
-                <Avatar variant="filled" radius="xl" color="green">
+              className={classes.flashButton}
+              data-flash={props.status === 2 ? "true" : "false"}
+              data-opacity={props.status !== 3 ? "true" : "false"}
+              rightSection={
+                props.status === 3 ? (
+                  <Avatar variant="outline" radius="xl" color="white">
                   <IconCheck />
                 </Avatar>
               ) : null
@@ -81,7 +56,7 @@ const DeviceChannelDisplay = (props: { device: Device, status: number | false })
                 props.status === 2 ||
                 props.status === 3
               ) {
-                newState = 3;
+                newState = 1;
               }
               setState.mutate({ id: props.device.id, newState: newState })
             }}
@@ -90,85 +65,87 @@ const DeviceChannelDisplay = (props: { device: Device, status: number | false })
           </Button>
           <Button
             rightSection={
-              false ? null : (
+                props.devicesInMasterChannel.includes(props.device.id) ? (
                 <Avatar variant="filled" radius="xl" color="dark">
                   <IconCheck />
                 </Avatar>
-              )
+                ) : null
             }
             size="xl"
-            uppercase
+              tt="uppercase"
             radius={0}
             fullWidth
             type="button"
             color="orange"
-            loaderPosition="left"
-            styles={(theme) =>
-              false ? { root: { opacity: 0.6 } } : {}
-            }
+              className={classes.flashButton}
+              data-flash={"false"}
+              data-opacity={props.devicesInMasterChannel.includes(props.device.id) ? "false" : "true"}
             onClick={() => {
-              console.log("CLicked")
+              props.setDevicesInMasterChannel((prevState) => {
+                if (prevState.includes(props.device.id)) {
+                  return prevState.filter((id) => id !== props.device.id);
+                }
+                return [...prevState, props.device.id];
+              });
             }}
           >
             Preset
           </Button>
           <Button
-            size="xl"
-            uppercase
-            radius={0}
-            fullWidth
-            type="button"
-            color="green"
-            loading={false}
-            styles={(theme) =>
-              props.status !== 4 ? { root: { opacity: 0.6 } } : {}
-            }
-            loaderPosition="left"
-            loaderProps={{ variant: "dots" }}
-            onClick={() => {
-              let newState = 4
-              if (props.status === 4) {
-                newState = 1;
-              }
-              setState.mutate({ id: props.device.id, newState: newState })
-            }}
-          >
+              size="xl"
+              tt="uppercase"
+              radius={0}
+              fullWidth
+              type="button"
+              color="green"
+              loading={false}
+              className={classes.flashButton}
+              data-flash={"false"}
+              data-opacity={props.status !== 5 ? "true" : "false"}
+              loaderProps={{ variant: "dots" }}
+              onClick={() => {
+                let newState = 5
+                if (props.status === 5) {
+                  newState = 1;
+                }
+                setState.mutate({ id: props.device.id, newState: newState })
+              }}
+            >
             Go
           </Button>
         </Stack>
-      ) : (
-        "Disconnected"
-      )}
+        ) : null
+      }
     </Card>
   );
 };
 
-const MasterChannel = () => {
-  const devicesInPreset1: Array<string> = [];
+const MasterChannel = (props: { devicesInMasterChannel: number[], setDevicesInMasterChannel: React.Dispatch<React.SetStateAction<number[]>> }) => {
+  const setState = trpc.devices.setState.useMutation();
   return (
     <Card>
-      <Text weight={500} ta="center" mb="md">
+      <Text fw={500} ta="center" mb="md">
         Master
       </Text>
-      <Stack justify="flex-start" spacing="lg">
+      <Stack justify="flex-start" gap="lg">
         <Button
           size="xl"
-          uppercase
+          tt="uppercase"
           radius={0}
           fullWidth
           type="button"
           color="red"
-          rightIcon={
-            devicesInPreset1.length > 0 ? "x" + devicesInPreset1.length : null
+          rightSection={
+            props.devicesInMasterChannel.length > 0 ? (
+              <Avatar variant="white" radius="xl" color="dark">
+                {props.devicesInMasterChannel.length}
+              </Avatar>
+            ) : null
           }
-          disabled={devicesInPreset1.length < 1}
+          disabled={props.devicesInMasterChannel.length < 1}
           onClick={() => {
-            devicesInPreset1.forEach((device) => {
-              setDeviceStatus({
-                type: "SET_DEVICE_STATE",
-                id: device,
-                newState: "await-standby",
-              });
+            props.devicesInMasterChannel.forEach((deviceId) => {
+              setState.mutate({ id: deviceId, newState: 2 });
             });
           }}
         >
@@ -176,31 +153,38 @@ const MasterChannel = () => {
         </Button>
         <Button
           size="xl"
-          uppercase
+          tt="uppercase"
           radius={0}
           fullWidth
           type="button"
           color="orange"
-          disabled={devicesInPreset1.length < 1}
+          disabled={props.devicesInMasterChannel.length < 1}
           onClick={() => {
-            setDeviceStatus({
-              type: "CLEAR_PRESET",
-            });
+            props.setDevicesInMasterChannel([]);
           }}
         >
           Clear
         </Button>
         <Button
           size="xl"
-          uppercase
+          tt="uppercase"
           radius={0}
           fullWidth
           type="button"
           color="green"
-          rightIcon={
-            devicesInPreset1.length > 0 ? "x" + devicesInPreset1.length : null
+          rightSection={
+            props.devicesInMasterChannel.length > 0 ? (
+              <Avatar variant="white" radius="xl" color="dark">
+                {props.devicesInMasterChannel.length}
+              </Avatar>
+            ) : null
           }
-          disabled={devicesInPreset1.length < 1}
+          disabled={props.devicesInMasterChannel.length < 1}
+          onClick={() => {
+            props.devicesInMasterChannel.forEach((deviceId) => {
+              setState.mutate({ id: deviceId, newState: 5 });
+            });
+          }}
         >
           Go
         </Button>
@@ -212,6 +196,7 @@ const MasterChannel = () => {
 export const Operate = () => {
   const [devices, setDevices] = useState<DevicesList | false>(false);
   const [deviceStatus, setDeviceStatus] = useState<{ [deviceId: number]: number | false }>({});
+  const [devicesInMasterChannel, setDevicesInMasterChannel] = useState<Array<number>>([]);
   trpc.devices.sub.useSubscription(undefined, {
     onStarted() {
       console.log("[Devices subscription] Connected");
@@ -241,15 +226,15 @@ export const Operate = () => {
     return <div>Setup your devices in the Devices tab</div>;
   return (
     <Grid justify="center" columns={12} gutter="sm">
-      <Grid.Col xs={12} sm={6} md={4} lg={3} xl={2}>
-        <MasterChannel />
+      <Grid.Col span={{ base: 12, sm: 6, md: 4, lg: 3, xl: 2 }}>
+        <MasterChannel devicesInMasterChannel={devicesInMasterChannel} setDevicesInMasterChannel={setDevicesInMasterChannel} />
       </Grid.Col>
       {devices
         .filter((device) => device.hidden === false)
       //.sort((a, b) => a.channel - b.channel)
         .map((device, i) => (
-          <Grid.Col xs={12} sm={6} md={4} lg={3} xl={2} key={i}>
-            <DeviceChannelDisplay device={device} status={deviceStatus[device.id]} />
+          <Grid.Col span={{ base: 12, sm: 6, md: 4, lg: 3, xl: 2 }} key={i}>
+            <DeviceChannelDisplay device={device} status={deviceStatus[device.id]} devicesInMasterChannel={devicesInMasterChannel} setDevicesInMasterChannel={setDevicesInMasterChannel} />
           </Grid.Col>
         ))}
     </Grid>

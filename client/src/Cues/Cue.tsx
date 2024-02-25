@@ -1,5 +1,7 @@
+import { useParams } from "react-router-dom"
 
 
 export const Cue = () => {
-	return <div>Cue</div>
+	const cueId = useParams()
+	return <div>Cue {cueId.cueId}</div>
 }

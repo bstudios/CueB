@@ -1,4 +1,4 @@
-import { Button, Modal, Title, Select, Group, Input, TextInput, Text } from '@mantine/core'
+/*import { Button, Modal, Title, Select, Group, Input, TextInput, Text } from '@mantine/core'
 import { useForm } from '@mantine/form'
 
 
@@ -86,3 +86,4 @@ export const ScanModal = (props: {
 		</Modal>
 	)
 }
+*/

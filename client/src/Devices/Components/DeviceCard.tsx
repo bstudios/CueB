@@ -1,15 +1,15 @@
 import { Text, Card, Button, Badge, Menu } from '@mantine/core'
-import { showNotification } from '@mantine/notifications'
 import { IconTrash, IconBulb, IconPencil } from '@tabler/icons-react'
 
 import { useNavigate } from 'react-router-dom'
 import { Device } from '../../../../server/src/db/controllers/devices'
 import { trpc } from '../../trpc/TRPCProvider'
+import { notifications } from '@mantine/notifications'
 
 export const DeviceCard = (props: { device: Device }) => {
 	const navigate = useNavigate()
 	const deleteDevice = trpc.devices.delete.useMutation();
-
+	const setState = trpc.devices.setState.useMutation();
 	if (!props.device) return <Text>Loading</Text>
 	return (
 		<Card shadow="sm" p="lg" radius="md" withBorder>
@@ -25,25 +25,24 @@ export const DeviceCard = (props: { device: Device }) => {
 				</Menu.Target>
 				<Menu.Dropdown>
 					<Menu.Label>Device</Menu.Label>
-					<Menu.Item leftSection={<IconPencil />} onClick={() => navigate(props.device.id)}>
+					<Menu.Item leftSection={<IconPencil />} onClick={() => navigate("/devices/" + props.device.id)}>
 						Settings
 					</Menu.Item>
 					<Menu.Item
 						leftSection={<IconBulb />}
-						onClick={() =>
-							identifyDevice(props.ip).then(result => {
-								if (result) {
-									showNotification({
-										message: 'Blinking lights on ' + props.ip,
-										withCloseButton: false,
-										autoClose: 5000,
-									})
-								} else {
-									showNotification({
-										message: 'Could not connect to ' + props.ip + '. Is it still connected?',
-									})
-								}
+						onClick={() => {
+							notifications.show({
+								title: 'Identify',
+								message: 'Blinking lights on ' + props.device.name,
+								autoClose: 5000,
+								withCloseButton: false,
+								loading: true,
 							})
+							setState.mutate({
+								id: props.device.id,
+								newState: 7
+							})
+						}
 						}
 					>
 						Identify

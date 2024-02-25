@@ -13,7 +13,7 @@ import {
 	SegmentedControl,
 } from '@mantine/core'
 import { useViewportSize } from '@mantine/hooks'
-import { CueList } from './CueList'
+import { CueList } from './Cues/CueList'
 import IconLandscape from './icon/icon-landscape.png'
 import { IconSun, IconMoon } from '@tabler/icons-react';
 import classes from './MainNav.module.css'
@@ -43,10 +43,9 @@ export const MainNav = () => {
 			navbar={{
 				width: {
 					sm: 200, lg: 300
-				}, collapsed: { mobile: !cueListOpened, desktop: !cueListOpened },
+				}, collapsed: { mobile: !currentPath.pathname.startsWith('/cues') || !cueListOpened, desktop: !currentPath.pathname.startsWith('/cues') || !cueListOpened },
 				breakpoint: "sm"
 			}}
-			padding="md"
 		>
 			<AppShell.Header className={classes.navbarMain}>
 					<div
@@ -78,8 +77,8 @@ export const MainNav = () => {
 							size="md"
 							data={[
 								{ label: 'Operate', value: '/operate' },
-								{ label: 'Devices', value: '/devices' },
 								{ label: 'Cues', value: '/cues' },
+								{ label: 'Devices', value: '/devices' },
 								{ label: 'Setup', value: '/setup' },
 							]}
 						/>
@@ -111,7 +110,7 @@ export const MainNav = () => {
 				<ScrollArea
 					style={{ height: height - (FOOTER_HEIGHT + HEADER_HEIGHT) }}
 					type="auto"
-					offsetScrollbars
+					offsetScrollbars={false}
 					scrollbarSize={30}
 				>
 					<Container fluid py={'sm'} px={'sm'}>

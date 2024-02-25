@@ -16,7 +16,7 @@ const Router = () => {
 					<Route path="operate" element={<Operate />} />
 					<Route path="devices">
 						<Route index element={<Devices />} />
-						<Route path=":ip" element={<Device />} />
+						<Route path=":deviceId" element={<Device />} />
 					</Route>
 					<Route path="cues">
 						<Route index element={<Cues />} />

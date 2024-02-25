@@ -1,28 +1,10 @@
 import { Button, Title, Grid, Modal, TextInput, Group, Text } from '@mantine/core'
 import { useState } from 'react'
-import { ProjectDevice } from './Device'
 import { DeviceCard } from './Components/DeviceCard'
-import { DiscoveredDeviceCard } from './Scan/DiscoveredDeviceCard'
-import { DiscoveredDevice, scanForDevices } from './Scan/Scan'
-import { ScanModal } from './Scan/ScanModal'
 import { trpc } from "../trpc/TRPCProvider";
 import { DevicesList } from "../../../server/src/db/controllers/devices";
 import { useDisclosure } from '@mantine/hooks'
 import { useForm } from '@mantine/form'
-import { create } from 'domain'
-
-const getHighestDeviceNumber = (devices: Array<ProjectDevice>, searchString: string) => {
-	const deviceNumbers = devices.map(device => {
-		if (device.name.startsWith(searchString)) {
-			const deviceNumber = device.name.match(/\d+$/)
-			if (deviceNumber) return parseInt(deviceNumber[0])
-			return 0
-		} else {
-			return 0
-		}
-	})
-	return Math.max(...deviceNumbers)
-}
 
 export const ManualAddDeviceModal = () => {
 	const [opened, { open, close }] = useDisclosure(false);
@@ -65,9 +47,6 @@ export const ManualAddDeviceModal = () => {
 };
 
 export const Devices = () => {
-	const [scanModalShow, setScanModalShow] = useState(false)
-	const [scanningForDevices, setScanningForDevices] = useState(false)
-
 	const [devices, setDevices] = useState<DevicesList | false>(false);
 	trpc.devices.sub.useSubscription(undefined, {
 		onStarted() {
@@ -88,7 +67,7 @@ export const Devices = () => {
 				{devices && devices
 				//.sort((a, b) => a.channel - b.channel)
 					.map((device, i) => (
-						<Grid.Col xs={12} sm={6} md={4} lg={3} xl={2} key={i}>
+						<Grid.Col span={{ base: 12, sm: 6, md: 4, lg: 3, xl: 2 }} key={i}>
 							<DeviceCard device={device} />
 						</Grid.Col>
 					))}
