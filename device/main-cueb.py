@@ -51,11 +51,11 @@ LEDS = [{
             {
                 'pin': 14,
                 'name': "AMBER-STATUS",
-                'flashFrequency': 250,
+                'flashFrequency': 500,
             },{
                 'pin': 15,
                 'name': "RED-STATUS",
-                'flashFrequency': 250,
+                'flashFrequency': 500,
             }
         ]
 
@@ -114,8 +114,8 @@ def setState(newState):
         LEDOn(getLEDIdByName("OUTSTATION-STANDBY"))
         LEDOn(getLEDIdByName("OUTSTATION-GO"))
     elif (newState == 7):
-        LEDOn(getLEDIdByName("OUTSTATION-STANDBY"))
-        LEDOn(getLEDIdByName("OUTSTATION-GO"))
+        LEDFlash(getLEDIdByName("OUTSTATION-STANDBY"))
+        LEDFlash(getLEDIdByName("OUTSTATION-GO"))
 
 def transmitState():
     oscClient.send("/cueb/outstationState/" + deviceUniqueId, state)
@@ -166,8 +166,9 @@ async def flashLEDRunner(ledid):
         await asyncio.sleep_ms(LEDS[ledid]['flashFrequency'])
 
 def LEDFlash(ledid):
-    LEDS[ledid]['flash'] = True
-    asyncio.create_task(flashLEDRunner(ledid))
+    if (LEDS[ledid]['flash'] != True):
+        LEDS[ledid]['flash'] = True
+        asyncio.create_task(flashLEDRunner(ledid))
 
 def LEDOn(ledid):
     LEDS[ledid]['flash'] = False
@@ -187,9 +188,9 @@ def getLEDIdByName(name):
 
 for i in range(len(LEDS)):
     LEDS[i]['var'] = Pin(LEDS[i]['pin'], Pin.OUT)
-    LEDS[i]['status'] = True
+    LEDS[i]['status'] = False
     LEDS[i]['flash'] = False
-    LEDS[i]['var'].high()
+    LEDS[i]['var'].low()
 
 '''
 Init W5x00 chip
@@ -204,10 +205,15 @@ def reboot():
     #sys.exit() #Soft reset just rebooting the virtual machine
 
 async def rebootAsync():
+    LEDOff(getLEDIdByName("OUTSTATION-STANDBY"))
+    LEDOff(getLEDIdByName("OUTSTATION-GO"))
+    LEDOff(getLEDIdByName("AMBER-STATUS"))
+    LEDOff(getLEDIdByName("RED-STATUS"))
     print("[MAIN] Reboot is scheduled")
     await asyncio.sleep(3.0)
     reboot()
 
+LEDFlash(getLEDIdByName("RED-STATUS")) # Red flashing = no network
 try:
     print("[NETWORK] Attempting DHCP connection")
     nic.ifconfig('dhcp')
@@ -217,6 +223,7 @@ except:
     reboot()
 
 while not nic.isconnected():
+    LEDFlash(getLEDIdByName("RED-STATUS")) # Red flashing = no network
     time.sleep(1)
     print("[NETWORK] Awaiting connection")
 
@@ -227,6 +234,7 @@ deviceRoutingPrefix = (".".join(map(str, [i & m
 deviceBroadcastAddress = (".".join(map(str,[(ioctet | ~moctet) & 0xff for ioctet, moctet in zip(tuple(map(int, deviceIp.split('.'))), tuple(map(int, deviceSubnetMask.split('.'))))])))
 
 print("[NETWORK] Got IP " + str(deviceIp))
+LEDOn(getLEDIdByName("RED-STATUS")) # Red on = has network
 
 def getUniqueId():
     # This is something a bit like the the mac address, the idea is its unique to a particular board
@@ -447,9 +455,6 @@ async def oscServer(host, port, cb, **params):
     setState(0)
     print("[OSC] Server shutdown")
 
-
-    
-
 async def broadcastState():
     while True:
         await asyncio.sleep_ms(100)
@@ -463,13 +468,18 @@ async def handle_request(sock, data, caddr, **params):
 '''
 Function that handles receipt of an OSC message
 '''
+lastOSCMessageReceived = 0
 def oscMessageRecieved(timetag, data):
+    global lastOSCMessageReceived
     oscaddr, tags, args, src = data
+    if (oscaddr.startswith("/reply/")):
+        return
+    lastOSCMessageReceived = time.ticks_ms()
     if (oscaddr == "/cueb/setOutstationState/" and len(args) == 1 and tags == "f"):
         if (state != int(args[0])):
             print("[OSC] Recieved state message from", src, "with state", int(args[0]))
             setState(int(args[0]))
-    elif (oscaddr.startswith("/reply/") != True):
+    else:
         print(oscaddr)
         print(tags)
         print(args)
@@ -480,8 +490,26 @@ def oscMessageRecieved(timetag, data):
 oscClient = Client(deviceBroadcastAddress, int(configStore.getConfig("osc-sendport")))
 
 '''
+Function to set LEDs based on last connected state
+'''
+async def isConnectedToAServer():
+    while True:
+        if (not nic.isconnected()):
+            LEDFlash(getLEDIdByName("RED-STATUS"))
+        elif (nic.isconnected()):
+            LEDOn(getLEDIdByName("RED-STATUS"))
+        if (time.ticks_diff(time.ticks_ms(), lastOSCMessageReceived) > 1000):
+            LEDFlash(getLEDIdByName("AMBER-STATUS"))
+        else:
+            LEDOn(getLEDIdByName("AMBER-STATUS"))
+        await asyncio.sleep_ms(800)
+
+asyncio.create_task(isConnectedToAServer())  
+
+'''
     MAIN LOOP
 '''
+
 
 try:
     # To listen to OSC broadcast instead, change to asyncio.run(oscServer(deviceRoutingPrefix, int(configStore.getConfig("osc-recieveport")), handle_request, dispatch=oscMessageRecieved))
