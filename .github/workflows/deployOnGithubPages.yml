@@ -8,12 +8,6 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-# Default to bash
-defaults:
-  run:
-    shell: bash
-    working-directory: .
-
 jobs:
   generateClientCode:
     uses: ./.github/workflows/build-client.yml
