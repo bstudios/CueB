@@ -5,6 +5,7 @@
   "description": "An Electron application to run CueB Server",
   "license": "UNLICENSED",
   "main": ".vite/build/main.js",
+  "author": "Bithell Studios Ltd.",
   "scripts": {
     "start": "electron-forge start",
     "package": "electron-forge package",
