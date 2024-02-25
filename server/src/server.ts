@@ -9,6 +9,9 @@ import { WebSocketServer } from "ws";
 import { EventEmitter } from 'events';
 import { z } from "zod";
 import cors from "cors";
+import path from "path";
+import url from "url";
+import fs from "fs";
 import {
   DevicesList,
   createDevice,
@@ -17,6 +20,7 @@ import {
   syncDevice,
 } from "./db/controllers/devices";
 import { OSC } from "./osc";
+import { mimeTypes } from "./mimeTypes";
 
 function createContext(
   _opts: CreateHTTPContextOptions | CreateWSSContextFnOptions
@@ -91,15 +95,17 @@ const devicesRouter = router({
       eventEmitter.emit("trpc.devices");
       return {};
     }),
-  requestSync: publicProcedure.input(
-    z.object({
-      id: z.number(),
-    })
-  ).mutation(async ({ input }) => {
-    const sync = await syncDevice(input.id);
-    if (sync) eventEmitter.emit("trpc.devices");
-    return sync;
-  }),
+  requestSync: publicProcedure
+    .input(
+      z.object({
+        id: z.number(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const sync = await syncDevice(input.id);
+      if (sync) eventEmitter.emit("trpc.devices");
+      return sync;
+    }),
   subStatus: publicProcedure.subscription(() => {
     return observable<{ [deviceId: number]: number | false }>((emit) => {
       const broadcast = () => {
@@ -146,18 +152,42 @@ export const server = createServer((req, res) => {
     newReq.url = newReq.url?.replace(/^\/api/, "");
     return handler(newReq, res);
   }
+  if (req.url !== undefined) {
+    const parsedUrl = url.parse(req.url);
+    if (parsedUrl.pathname !== null) {
+      const sanitizePath = path
+        .normalize(parsedUrl.pathname)
+        .replace(/^(\.\.[/\\])+/, "");
+      let pathname = path.join(__dirname, "../../public/", sanitizePath);
 
-  // Handle all other requests ourselves
-  if (req.url === "/favicon.ico") {
-    res.writeHead(200, { "Content-Type": "text/html" });
-    res.write("Hello World!");
-    res.end();
-  } else {
-    // This will be where we'll handle our static files
-    console.log("rendered 404");
-    res.writeHead(404, { "Content-Type": "text/html" });
-    res.write("404 Error");
-    res.end();
+      fs.exists(pathname, function (exist) {
+        if (!exist) {
+          // if the file is not found, return 404
+          res.statusCode = 404;
+          res.end(`File ${pathname} not found!`);
+          return;
+        }
+
+        // if is a directory, then look for index.html
+        if (fs.statSync(pathname).isDirectory()) {
+          pathname += "/index.html";
+        }
+
+        // read file from file system
+        fs.readFile(pathname, function (err, data) {
+          if (err) {
+            res.statusCode = 500;
+            res.end(`Error getting the file: ${err}.`);
+          } else {
+            // based on the URL path, extract the file extention. e.g. .js, .doc, ...
+            const ext = path.parse(pathname).ext;
+            // if the file is found, set Content-type and send data
+            res.setHeader("Content-type", mimeTypes[ext] || "text/plain");
+            res.end(data);
+          }
+        });
+      });
+    }
   }
 });
 
@@ -168,9 +198,3 @@ applyWSSHandler<AppRouter>({
   router: appRouter,
   createContext,
 });
-
-/**
-setInterval(() => {
-  console.log("Connected clients", wss.clients.size);
-}, 1000);
-*/
