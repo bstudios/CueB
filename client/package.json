@@ -2,6 +2,7 @@
   "name": "cueb-client",
   "private": false,
   "version": "8.0.0",
+  "license": "UNLICENSED",
   "type": "module",
   "scripts": {
     "dev": "vite --port 3000",

@@ -3,6 +3,7 @@
   "private": false,
   "version": "8.0.0",
   "description": "An Electron application to run CueB Server",
+  "license": "UNLICENSED",
   "main": ".vite/build/main.js",
   "scripts": {
     "start": "electron-forge start",
