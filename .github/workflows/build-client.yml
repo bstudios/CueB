@@ -6,6 +6,7 @@ defaults:
     working-directory: ./client
 jobs:
   generateClientCode:
+    name: Generate Client Code
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
