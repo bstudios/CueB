@@ -14,9 +14,11 @@ jobs:
         node-version: 18
         cache: npm
         cache-dependency-path: '**/package-lock.json'
-    - run: npm install
+    - name: Install client dependencies
+      run: npm install
       working-directory: ./client
-    - run: npm install
+    - name: Install server dependencies
+      run: npm install
       working-directory: ./server
     - run: npm run build
     - name: Archive production artifacts
