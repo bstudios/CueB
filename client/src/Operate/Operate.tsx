@@ -22,7 +22,16 @@ const DeviceChannelDisplay = (props: { device: Device, status: number | false, d
       {props.status === 6 ? (
         <Alert color="red" title="Panic Mode" icon={<IconAlertTriangle />} mb="md">
           Outstation has been placed in panic mode by operator
-          <Button mt={10} size="lg" color="red" fullWidth={true} onClick={() => setState.mutate({ id: props.device.id, newState: 1 })}>
+          <Button mt={10} size="lg" color="yellow" fullWidth={true} onClick={() => setState.mutate({ id: props.device.id, newState: 1 })}>
+            Reset
+          </Button>
+        </Alert>
+      ) : null
+      }
+      {props.status === 7 ? (
+        <Alert color="yellow" title="Identify Mode" icon={<IconAlertTriangle />} mb="md">
+          Outstation lights are blinking
+          <Button mt={10} size="lg" color="yellow" fullWidth={true} onClick={() => setState.mutate({ id: props.device.id, newState: 1 })}>
             Reset
           </Button>
         </Alert>

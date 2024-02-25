@@ -90,6 +90,17 @@ def translateState(stateInt):
     else:
         return "Unknown"
 
+try:
+    autoGreenOffTimer = int(configStore.getConfig("mainlogic-autogreenoff"))
+except:
+    # Just in case it wasn't an int for some reason
+    autoGreenOffTimer = 3
+
+async def autoGreenOff():
+    await asyncio.sleep_ms(autoGreenOffTimer * 1000)
+    if (state == 5):
+        setState(1)
+
 def setState(newState):
     global state
     print("[STATE] State changed from ", translateState(state), "to", translateState(newState))
@@ -110,6 +121,8 @@ def setState(newState):
     elif (newState == 5):
         LEDOff(getLEDIdByName("OUTSTATION-STANDBY"))
         LEDOn(getLEDIdByName("OUTSTATION-GO"))
+        if (autoGreenOffTimer > 0):
+            asyncio.create_task(autoGreenOff())
     elif (newState == 6):
         LEDOn(getLEDIdByName("OUTSTATION-STANDBY"))
         LEDOn(getLEDIdByName("OUTSTATION-GO"))
@@ -479,6 +492,9 @@ def oscMessageRecieved(timetag, data):
         if (state != int(args[0])):
             print("[OSC] Recieved state message from", src, "with state", int(args[0]))
             setState(int(args[0]))
+    elif (oscaddr == "/cueb/ping/" and len(args) == 0 and tags == "" and src != deviceIp):
+        print("[OSC] Ping from", src)
+        oscClient.send("/cueb/pong/" + deviceUniqueId)
     else:
         print(oscaddr)
         print(tags)

@@ -20,6 +20,13 @@ export class OSC {
   static deviceStatus: {
     [deviceId: number]: number | false;
   } = {};
+  static devicePingChecks: {
+    [deviceId: number]: {
+      lastPingTimestamp: number;
+      sendInterval: NodeJS.Timeout;
+      checkInterval: NodeJS.Timeout;
+    };
+  } = {};
   constructor(ports: number[]) {
     for (const port of ports) {
       OSC.servers[port] = createOSCServer(port);
@@ -30,9 +37,17 @@ export class OSC {
           typeof msg[1] === "number"
         ) {
           const deviceId = OSC.ipsToDevices[rinfo.address];
-          if (deviceId && OSC.deviceStatus[deviceId] !== msg[1]) {
-            OSC.deviceStatus[deviceId] = msg[1];
-            eventEmitter.emit("trpc.deviceStatus");
+          if (deviceId) {
+            OSC.devicePingChecks[deviceId].lastPingTimestamp = Date.now();
+            if (OSC.deviceStatus[deviceId] !== msg[1]) {
+              OSC.deviceStatus[deviceId] = msg[1];
+              eventEmitter.emit("trpc.deviceStatus");
+            }
+          }
+        } else if (msg[0].startsWith("/cueb/pong/") && msg.length === 1) {
+          const deviceId = OSC.ipsToDevices[rinfo.address];
+          if (deviceId) {
+            OSC.devicePingChecks[deviceId].lastPingTimestamp = Date.now();
           }
         } else {
           console.log("Unknown message", msg, rinfo);
@@ -52,8 +67,27 @@ export class OSC {
     OSC.ipsToDevices[ip] = deviceId;
     OSC.deviceStatus[deviceId] = false;
     OSC.devices[deviceId] = createOSCClient(ip, port);
+
+    OSC.devicePingChecks[deviceId] = {
+      sendInterval: setInterval(() => {
+        OSC.messageDevice(deviceId, "/cueb/ping/");
+      }, 500),
+      checkInterval: setInterval(() => {
+        if (
+          Date.now() - OSC.devicePingChecks[deviceId].lastPingTimestamp >
+          1000
+        ) {
+          OSC.deviceStatus[deviceId] = false;
+          eventEmitter.emit("trpc.deviceStatus");
+        }
+      }, 500),
+      lastPingTimestamp: 0,
+    };
   }
   static deleteClient(deviceId: number) {
+    clearInterval(OSC.devicePingChecks[deviceId].sendInterval);
+    clearInterval(OSC.devicePingChecks[deviceId].checkInterval);
+    delete OSC.devicePingChecks[deviceId];
     OSC.devices[deviceId].close();
     delete OSC.devices[deviceId];
     delete OSC.deviceStatus[deviceId];

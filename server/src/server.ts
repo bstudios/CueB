@@ -8,18 +8,15 @@ import { observable } from "@trpc/server/observable";
 import { EventEmitter, WebSocketServer } from "ws";
 import { z } from "zod";
 import cors from "cors";
-import { devices } from "./db/schema/devices";
-import { Database } from "./db/database";
 import {
   DevicesList,
   createDevice,
   deleteDevice,
   getDevices,
+  syncDevice,
 } from "./db/controllers/devices";
-import { eq } from "drizzle-orm";
 import { OSC } from "./osc";
 
-// TODO split this up into files
 function createContext(
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   opts: CreateHTTPContextOptions | CreateWSSContextFnOptions
@@ -79,6 +76,7 @@ const devicesRouter = router({
       z.object({
         ip: z.string(),
         name: z.string(),
+        port: z.number(),
       })
     )
     .mutation(async ({ input }) => {
@@ -93,6 +91,15 @@ const devicesRouter = router({
       eventEmitter.emit("trpc.devices");
       return {};
     }),
+  requestSync: publicProcedure.input(
+    z.object({
+      id: z.number(),
+    })
+  ).mutation(async ({ input }) => {
+    const sync = await syncDevice(input.id);
+    if (sync) eventEmitter.emit("trpc.devices");
+    return sync;
+  }),
   subStatus: publicProcedure.subscription(() => {
     return observable<{ [deviceId: number]: number | false }>((emit) => {
       const broadcast = () => {
@@ -162,6 +169,8 @@ applyWSSHandler<AppRouter>({
   createContext,
 });
 
+/**
 setInterval(() => {
   console.log("Connected clients", wss.clients.size);
 }, 1000);
+*/

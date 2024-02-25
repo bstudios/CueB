@@ -2,6 +2,7 @@ import { ColorSchemeScript, MantineProvider } from "@mantine/core";
 import Router from "./Router";
 import { Notifications } from "@mantine/notifications";
 import "@mantine/core/styles.css";
+import "@mantine/notifications/styles.css";
 import { TRPCProvider } from "./trpc/TRPCProvider";
 function App() {
   return (
@@ -9,7 +10,7 @@ function App() {
       <TRPCProvider>
         <ColorSchemeScript defaultColorScheme="auto" />
         <MantineProvider defaultColorScheme="auto">
-          <Notifications />
+          <Notifications position={"bottom-right"} />
           <Router />
         </MantineProvider>
       </TRPCProvider>

@@ -1,7 +1,7 @@
 {
   "version": "5",
   "dialect": "sqlite",
-  "id": "68d4775c-96d6-4c1f-90c7-b560ca18aac6",
+  "id": "8a442a8a-fc6e-4306-acfe-82d7dad27e34",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "channels": {
@@ -57,8 +57,7 @@
           "type": "integer",
           "primaryKey": false,
           "notNull": true,
-          "autoincrement": false,
-          "default": "53001"
+          "autoincrement": false
         },
         "devices.name": {
           "name": "devices.name",

@@ -1,4 +1,4 @@
-import { Button, Title, Grid, Modal, TextInput, Group, Text } from '@mantine/core'
+import { Button, Title, Grid, Modal, TextInput, Group, Text, NumberInput } from '@mantine/core'
 import { useState } from 'react'
 import { DeviceCard } from './Components/DeviceCard'
 import { trpc } from "../trpc/TRPCProvider";
@@ -12,6 +12,7 @@ export const ManualAddDeviceModal = () => {
 	const form = useForm({
 		initialValues: {
 			ip: '',
+			recievePort: 53001,
 		},
 		validate: {
 			ip: (value) => {
@@ -25,7 +26,7 @@ export const ManualAddDeviceModal = () => {
 		<>
 			<Modal opened={opened} onClose={close} title="Add new Device" centered>
 				<form onSubmit={form.onSubmit((values) => {
-					createDevice.mutate({ ip: values.ip, name: 'Device' })
+					createDevice.mutate({ ip: values.ip, name: 'Device', port: values.recievePort })
 					close()
 				})}>
 					<TextInput
@@ -33,6 +34,13 @@ export const ManualAddDeviceModal = () => {
 						description="Enter the IP Address of the Device to Add"
 						placeholder=""
 						{...form.getInputProps('ip')}
+					/>
+					<NumberInput
+						label="Recieve Port"
+						description="Enter the Port the device receives OSC on"
+						min={1024}
+						max={65535}
+						{...form.getInputProps('recievePort')}
 					/>
 					<Group justify="flex-end" mt="lg">
 						<Button type="submit" variant="outline">

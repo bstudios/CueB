@@ -14,6 +14,10 @@ def getConfigStructureAndDefaults():
             "default": "53001",
             "name": "OSC Recieve Port"
         },
+        "mainlogic-autogreenoff": {
+            "default": "3",
+            "name": "Auto turn off green light after x seconds (0 to disable)"
+        }
     }
 
 def getConfigDict():
