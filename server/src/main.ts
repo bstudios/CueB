@@ -22,7 +22,7 @@ const createWindow = () => {
 
   new Database();
   new OSC([53000]);
-  server.listen(2022);
+  server.listen(8080);
 
   getDevices().then((devices) => {
     devices.forEach((device) => {
