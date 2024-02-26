@@ -29,7 +29,9 @@ import configStore
 '''
 CONFIG
 '''
-VERSION = '8.0.0'
+VERSION = '8.0.1'
+SERIAL = 'CUEBGEN2-?'
+CUSTOMMAC = 'none' #set to string "none" to disable, format is without : - so "0271835c629b"  
 # Buttons & LEDs - Pinout
 BUTTONS = [{
                 'pin': 12,
@@ -154,6 +156,9 @@ def buttonDoubleClick(data):
             setState(1)
         elif (state != 0):
             setState(6)
+    if (str(data) == "OUTSTATION-STANDBY"):
+        if (state == 6):
+            setState(1)
 
 # https://github.com/peterhinch/micropython-async/blob/99421dcceefe8f039a1776bb1fc68f87ed085b91/v2/DRIVERS.md
 for i in range(len(BUTTONS)):
@@ -211,9 +216,11 @@ Init W5x00 chip
 spi=SPI(0,2_000_000, mosi=Pin(19),miso=Pin(16),sck=Pin(18))
 nic = network.WIZNET5K(spi,Pin(17),Pin(20)) #spi,cs,reset pin
 nic.active(True) 
-#print("Chip has default MAC Address",nic.config("mac").hex())
-# nic.config(mac=bytes.fromhex("0271835c629b"))
-print("Set MAC address to",nic.config("mac").hex())
+if (CUSTOMMAC != "none"):
+    nic.config(mac=bytes.fromhex(str(CUSTOMMAC)))
+    print("Set MAC address to",nic.config("mac").hex())
+else:
+    print("Used default MAC address from chip",nic.config("mac").hex())
 
 def reboot():
     print("[MAIN] Rebooting")
@@ -300,6 +307,7 @@ def prepareConfigString():
     temperature = 27 - (tempReading - 0.706)/0.001721
     rtn = {
         'version': str(VERSION),
+        'serial': str(SERIAL),
         'type': 'cueb',
         'uid': deviceUniqueId,
         'stateString': translateState(state),
