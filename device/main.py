@@ -478,7 +478,8 @@ async def oscServer(host, port, cb, **params):
 
 async def broadcastState():
     while True:
-        await asyncio.sleep_ms(100)
+        # Broadcast state every 2 seconds 
+        await asyncio.sleep_ms(2000)
         transmitState()
 
 asyncio.create_task(broadcastState())
@@ -509,7 +510,6 @@ def oscMessageRecieved(timetag, data):
         print(args)
         print(len(args))
         print(src)
-    #asyncio.create_task(sendMessage(args[1]))
 
 oscClient = Client(deviceBroadcastAddress, int(configStore.getConfig("osc-sendport")))
 
@@ -522,11 +522,16 @@ async def isConnectedToAServer():
             LEDFlash(getLEDIdByName("RED-STATUS"))
         elif (nic.isconnected()):
             LEDOn(getLEDIdByName("RED-STATUS"))
-        if (time.ticks_diff(time.ticks_ms(), lastOSCMessageReceived) > 1000):
+        
+        if (time.ticks_diff(time.ticks_ms(), lastOSCMessageReceived) > 600000):
+            # After 10 minutes of no messages, just turn the LED off as it's a sort of "sleep" state
+            LEDOff(getLEDIdByName("AMBER-STATUS"))
+        elif (time.ticks_diff(time.ticks_ms(), lastOSCMessageReceived) > 5000):
+            # After 5 second of no messages, flash the LED
             LEDFlash(getLEDIdByName("AMBER-STATUS"))
         else:
             LEDOn(getLEDIdByName("AMBER-STATUS"))
-        await asyncio.sleep_ms(800)
+        await asyncio.sleep_ms(1000)
 
 asyncio.create_task(isConnectedToAServer())  
 

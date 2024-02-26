@@ -72,12 +72,19 @@ export class OSC {
 
     OSC.devicePingChecks[deviceId] = {
       sendInterval: setInterval(() => {
-        OSC.messageDevice(deviceId, "/cueb/ping/");
-      }, 500),
-      checkInterval: setInterval(() => {
+        // Devices timeout after 5000ms of no pings received from a server
         if (
           Date.now() - OSC.devicePingChecks[deviceId].lastPingTimestamp >
-          1000
+          4000
+        ) {
+          OSC.messageDevice(deviceId, "/cueb/ping/");
+        }
+      }, 500),
+      checkInterval: setInterval(() => {
+        // We should mark a device as timed out if we haven't heard from it for 3 seconds - it should be transmitting its state every 2 seconds 
+        if (
+          Date.now() - OSC.devicePingChecks[deviceId].lastPingTimestamp >
+          3000
         ) {
           OSC.deviceStatus[deviceId] = false;
           eventEmitter.emit("trpc.deviceStatus");
