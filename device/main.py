@@ -210,7 +210,10 @@ Init W5x00 chip
 '''
 spi=SPI(0,2_000_000, mosi=Pin(19),miso=Pin(16),sck=Pin(18))
 nic = network.WIZNET5K(spi,Pin(17),Pin(20)) #spi,cs,reset pin
-nic.active(True)
+nic.active(True) 
+#print("Chip has default MAC Address",nic.config("mac").hex())
+# nic.config(mac=bytes.fromhex("0271835c629b"))
+print("Set MAC address to",nic.config("mac").hex())
 
 def reboot():
     print("[MAIN] Rebooting")
