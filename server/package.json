@@ -23,6 +23,7 @@
     "cors": "^2.8.5",
     "drizzle-orm": "^0.29.3",
     "electron-squirrel-startup": "^1.0.0",
+    "get-ip-range": "^4.0.1",
     "ip": "^2.0.1",
     "node-osc": "^9.1.0",
     "portfinder": "^1.0.32",

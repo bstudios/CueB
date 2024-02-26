@@ -6,7 +6,7 @@ import type { CreateWSSContextFnOptions } from "@trpc/server/adapters/ws";
 import { applyWSSHandler } from "@trpc/server/adapters/ws";
 import { observable } from "@trpc/server/observable";
 import { WebSocketServer } from "ws";
-import { EventEmitter } from 'events';
+import { EventEmitter } from "events";
 import { z } from "zod";
 import cors from "cors";
 import path from "path";
@@ -21,6 +21,7 @@ import {
 } from "./db/controllers/devices";
 import { OSC } from "./osc";
 import { mimeTypes } from "./utils/mimeTypes";
+import { scanForDevices } from "./utils/scanForDevices";
 
 function createContext(
   _opts: CreateHTTPContextOptions | CreateWSSContextFnOptions
@@ -52,10 +53,6 @@ const connectionStatusRouter = router({
 });
 
 const devicesRouter = router({
-  get: publicProcedure.query(() => {
-    eventEmitter.emit("trpc.devices");
-    return {};
-  }),
   sub: publicProcedure.subscription(() => {
     return observable<{ devices: DevicesList }>((emit) => {
       const broadcast = () => {
@@ -102,6 +99,7 @@ const devicesRouter = router({
       })
     )
     .mutation(async ({ input }) => {
+      // Get the config from the device and set it up as the new config
       const sync = await syncDevice(input.id);
       if (sync) eventEmitter.emit("trpc.devices");
       return sync;
@@ -129,6 +127,9 @@ const devicesRouter = router({
       OSC.messageDevice(input.id, "/cueb/setOutstationState/", input.newState);
       return {};
     }),
+  scanForDevices: publicProcedure.mutation(() => {
+    return scanForDevices();
+  }),
 });
 
 // Merge routers together
