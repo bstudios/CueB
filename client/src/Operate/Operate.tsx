@@ -12,7 +12,7 @@ const DeviceChannelDisplay = (props: { device: Device, status: number | false, d
   return (
     <Card>
       <Text fw={500} ta="center" mb="md">
-        {props.device.name} {props.device.ip}
+        {props.device.name}
       </Text>
       {props.status === false ? (
         <Alert variant="transparent" title="Device Disconnected" icon={<IconPlugConnectedX />} mb="md">

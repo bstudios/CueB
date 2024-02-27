@@ -1,9 +1,13 @@
 import ip from "ip";
-import { getIPRange } from "get-ip-range";
+import { Netmask } from "netmask";
 
 export const scanForDevices = () => {
   const thisIp = ip.address();
-  const ips = getIPRange(thisIp + "/24");
+  if (!thisIp || thisIp === null)
+    throw new Error("Unable to get the local IP address");
+  const ips: string[] = [];
+  const block = new Netmask(thisIp, "255.255.255.0");
+  block.forEach((ip: string) => ips.push(ip));
   console.log("Scanning for devices on the network");
   return Promise.allSettled(
     ips.map((ip) => {
