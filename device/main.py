@@ -29,7 +29,7 @@ import configStore
 '''
 CONFIG
 '''
-VERSION = '8.0.1'
+VERSION = '8.0.2'
 SERIAL = 'CUEBGEN2-?'
 CUSTOMMAC = 'none' #set to string "none" to disable, format is without : - so "0271835c629b"  
 # Buttons & LEDs - Pinout
@@ -92,19 +92,22 @@ def translateState(stateInt):
     else:
         return "Unknown"
 
+
 try:
     autoGreenOffTimer = int(configStore.getConfig("mainlogic-autogreenoff"))
 except:
     # Just in case it wasn't an int for some reason
     autoGreenOffTimer = 3
-
+# Used to track when the last green light was turned on, because if you send a green twice within the autoGreenOffTimer value it will turn it off too early the second time because the sleep is finished
+autoGreenOffLastGreen = 0 
+# Automatically turn off the green light after x seconds
 async def autoGreenOff():
     await asyncio.sleep_ms(autoGreenOffTimer * 1000)
-    if (state == 5):
+    if (state == 5 and time.ticks_diff(time.ticks_ms(), autoGreenOffLastGreen) >= (autoGreenOffTimer * 1000)):
         setState(1)
 
 def setState(newState):
-    global state
+    global state, autoGreenOffLastGreen
     print("[STATE] State changed from ", translateState(state), "to", translateState(newState))
     state = newState
     transmitState()
@@ -124,6 +127,7 @@ def setState(newState):
         LEDOff(getLEDIdByName("OUTSTATION-STANDBY"))
         LEDOn(getLEDIdByName("OUTSTATION-GO"))
         if (autoGreenOffTimer > 0):
+            autoGreenOffLastGreen = time.ticks_ms()
             asyncio.create_task(autoGreenOff())
     elif (newState == 6):
         LEDOn(getLEDIdByName("OUTSTATION-STANDBY"))

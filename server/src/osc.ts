@@ -23,7 +23,8 @@ export class OSC {
   } = {};
   static devicePingChecks: {
     [deviceId: number]: {
-      lastPingTimestamp: number;
+      lastPingReceivedTimestamp: number;
+      lastPingSentTimestamp: number;
       sendInterval: NodeJS.Timeout;
       checkInterval: NodeJS.Timeout;
     };
@@ -40,7 +41,8 @@ export class OSC {
         ) {
           const deviceId = OSC.ipsToDevices[rinfo.address];
           if (deviceId) {
-            OSC.devicePingChecks[deviceId].lastPingTimestamp = Date.now();
+            OSC.devicePingChecks[deviceId].lastPingReceivedTimestamp =
+              Date.now();
             if (OSC.deviceStatus[deviceId] !== msg[1]) {
               OSC.deviceStatus[deviceId] = msg[1];
               eventEmitter.emit("trpc.deviceStatus");
@@ -49,7 +51,8 @@ export class OSC {
         } else if (msg[0].startsWith("/cueb/pong/") && msg.length === 1) {
           const deviceId = OSC.ipsToDevices[rinfo.address];
           if (deviceId) {
-            OSC.devicePingChecks[deviceId].lastPingTimestamp = Date.now();
+            OSC.devicePingChecks[deviceId].lastPingReceivedTimestamp =
+              Date.now();
           }
         } else {
           console.log("Unknown message", msg, rinfo);
@@ -74,23 +77,25 @@ export class OSC {
       sendInterval: setInterval(() => {
         // Devices timeout after 5000ms of no pings received from a server
         if (
-          Date.now() - OSC.devicePingChecks[deviceId].lastPingTimestamp >
-          4000
+          Date.now() - OSC.devicePingChecks[deviceId].lastPingSentTimestamp >=
+          3500
         ) {
           OSC.messageDevice(deviceId, "/cueb/ping/");
         }
       }, 500),
       checkInterval: setInterval(() => {
-        // We should mark a device as timed out if we haven't heard from it for 3 seconds - it should be transmitting its state every 2 seconds 
+        // We should mark a device as timed out if we haven't heard from it for 4 seconds - it should be transmitting its state every 2 seconds
         if (
-          Date.now() - OSC.devicePingChecks[deviceId].lastPingTimestamp >
-          3000
+          Date.now() -
+            OSC.devicePingChecks[deviceId].lastPingReceivedTimestamp >
+          4000
         ) {
           OSC.deviceStatus[deviceId] = false;
           eventEmitter.emit("trpc.deviceStatus");
         }
       }, 500),
-      lastPingTimestamp: 0,
+      lastPingReceivedTimestamp: 0,
+      lastPingSentTimestamp: 0,
     };
   }
   static deleteClient(deviceId: number) {
@@ -113,5 +118,6 @@ export class OSC {
   ) {
     const msg = new Message(message, ...args);
     OSC.devices[deviceId].send(msg);
+    OSC.devicePingChecks[deviceId].lastPingSentTimestamp = Date.now();
   }
 }

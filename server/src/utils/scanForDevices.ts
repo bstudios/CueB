@@ -8,6 +8,9 @@ export const scanForDevices = () => {
   const ips: string[] = [];
   const block = new Netmask(thisIp, "255.255.255.0");
   block.forEach((ip: string) => ips.push(ip));
+
+  //TODO hunt through existing devices to double check no clashes first
+
   console.log("Scanning for devices on the network");
   return Promise.allSettled(
     ips.map((ip) => {
