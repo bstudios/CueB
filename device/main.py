@@ -70,7 +70,8 @@ print("[MAIN] Booting version", VERSION)
 '''
 Main State Logic
 '''
-state = 0
+state = 0 # The state we are in
+serverState = -1 # The state that the server thinks we are in - minus 1 is unknown state - server isn't sure
 def translateState(stateInt):
     # Translates the state integer into a human readable string
     if (stateInt == 0):
@@ -137,7 +138,7 @@ def setState(newState):
         LEDFlash(getLEDIdByName("OUTSTATION-GO"))
 
 def transmitState():
-    oscClient.send("/cueb/outstationState/" + deviceUniqueId, state)
+    oscClient.send("/cueb/outstationState", state, deviceUniqueId)
 
 '''
 Setup Buttons & LEDs - Interrupts
@@ -488,13 +489,14 @@ async def oscServer(host, port, cb, **params):
     setState(0)
     print("[OSC] Server shutdown")
 
-async def broadcastState():
+async def retransmitState():
+    # Rebroadcast the state every 200ms if the server has ended up in a different state - this is normally if they misheard
     while True:
-        # Broadcast state every 2 seconds 
-        await asyncio.sleep_ms(2000)
-        transmitState()
+        if (state != serverState):
+            transmitState()
+        await asyncio.sleep_ms(200)
 
-asyncio.create_task(broadcastState())
+asyncio.create_task(retransmitState())
 
 async def handle_request(sock, data, caddr, **params):
     handle_osc(data, caddr, **params)
@@ -504,18 +506,22 @@ Function that handles receipt of an OSC message
 '''
 lastOSCMessageReceived = 0
 def oscMessageRecieved(timetag, data):
-    global lastOSCMessageReceived
+    global lastOSCMessageReceived, serverState
     oscaddr, tags, args, src = data
     if (oscaddr.startswith("/reply/")):
         return
     lastOSCMessageReceived = time.ticks_ms()
-    if (oscaddr == "/cueb/setOutstationState/" and len(args) == 1 and tags == "f"):
+    if (oscaddr == "/cueb/outstationState" and len(args) == 1 and tags == "f" and src != deviceIp):
+        serverState = int(args[0])
         if (state != int(args[0])):
-            print("[OSC] Recieved state message from", src, "with state", int(args[0]))
             setState(int(args[0]))
-    elif (oscaddr == "/cueb/ping/" and len(args) == 0 and tags == "" and src != deviceIp):
+            print("[OSC] Recieved state message from", src, "with state", int(args[0]))
+    elif (oscaddr == "/cueb/outstationState" and len(args) == 0 and tags == "" and src != deviceIp):
+        serverState = -1
+        transmitState()
+    elif (oscaddr == "/cueb/ping" and len(args) == 0 and tags == "" and src != deviceIp):
         print("[OSC] Ping from", src)
-        oscClient.send("/cueb/pong/" + deviceUniqueId)
+        oscClient.send("/cueb/pong", deviceUniqueId)
     else:
         print(oscaddr)
         print(tags)

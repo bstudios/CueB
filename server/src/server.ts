@@ -124,7 +124,7 @@ const devicesRouter = router({
   setState: publicProcedure
     .input(z.object({ id: z.number(), newState: z.number() }))
     .mutation(({ input }) => {
-      OSC.messageDevice(input.id, "/cueb/setOutstationState/", input.newState);
+      OSC.messageDevice(input.id, "/cueb/outstationState", input.newState);
       return {};
     }),
   scanForDevices: publicProcedure.mutation(() => {

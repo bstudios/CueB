@@ -35,8 +35,8 @@ export class OSC {
       OSC.servers[port] = createOSCServer(port);
       OSC.servers[port].on("message", (msg, rinfo) => {
         if (
-          msg[0].startsWith("/cueb/outstationState") &&
-          msg.length === 2 &&
+          msg[0] == "/cueb/outstationState" &&
+          msg.length === 3 &&
           typeof msg[1] === "number"
         ) {
           const deviceId = OSC.ipsToDevices[rinfo.address];
@@ -45,10 +45,15 @@ export class OSC {
               Date.now();
             if (OSC.deviceStatus[deviceId] !== msg[1]) {
               OSC.deviceStatus[deviceId] = msg[1];
+              OSC.messageDevice(
+                deviceId,
+                "/cueb/outstationState",
+                OSC.deviceStatus[deviceId]
+              ); // Echo the state back to the device to confirm it was received
               eventEmitter.emit("trpc.deviceStatus");
             }
           }
-        } else if (msg[0].startsWith("/cueb/pong/") && msg.length === 1) {
+        } else if (msg[0] == "/cueb/pong" && msg.length === 2) {
           const deviceId = OSC.ipsToDevices[rinfo.address];
           if (deviceId) {
             OSC.devicePingChecks[deviceId].lastPingReceivedTimestamp =
@@ -80,7 +85,7 @@ export class OSC {
           Date.now() - OSC.devicePingChecks[deviceId].lastPingSentTimestamp >=
           3500
         ) {
-          OSC.messageDevice(deviceId, "/cueb/ping/");
+          OSC.messageDevice(deviceId, "/cueb/ping");
         }
       }, 500),
       checkInterval: setInterval(() => {
