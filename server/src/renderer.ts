@@ -29,16 +29,25 @@
 import "./assets/index.css";
 import { ServerAccessData } from "./utils/ServerAccessData";
 
-const webServerAddressDiv = document.getElementById("webserveraddress");
-
+const webServerAddressLink = document.getElementById("webserveraddress");
+const oscServerlisteningPortsDiv = document.getElementById("oscports");
 window.electronAPI?.onGotServerAccessData((data: ServerAccessData) => {
   console.log(data.IPAddress);
-  if (webServerAddressDiv !== null)
-    webServerAddressDiv.innerText =
+  if (webServerAddressLink !== null && oscServerlisteningPortsDiv !== null) {
+    webServerAddressLink.innerText =
       "http://" +
       data.IPAddress.toString() +
       ":" +
       data.WebServerPort.toString();
-  console.log(data);
+    webServerAddressLink.setAttribute(
+      "href",
+      "http://" +
+        data.IPAddress.toString() +
+        ":" +
+        data.WebServerPort.toString()
+    );
+    oscServerlisteningPortsDiv.innerText =
+      "OSC receive port: " + data.OSCPorts.join(" & ");
+  }
 });
 window.electronAPI?.requestServerAccessData();

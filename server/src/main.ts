@@ -16,8 +16,8 @@ if (require("electron-squirrel-startup")) {
 const createWindow = () => {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
-    width: 480,
-    height: 270,
+    width: 960,
+    height: 540,
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
     },
@@ -76,7 +76,7 @@ const createWindow = () => {
   } else {
     Menu.setApplicationMenu(null);
   }
-  mainWindow.setResizable(false);
+  mainWindow.setResizable(true);
 
   new Database(
     app.isPackaged

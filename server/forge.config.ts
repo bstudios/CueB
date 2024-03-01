@@ -1,11 +1,16 @@
-import type { ForgeConfig } from '@electron-forge/shared-types';
-import { MakerSquirrel } from '@electron-forge/maker-squirrel';
-import { MakerZIP } from '@electron-forge/maker-zip';
-import { MakerDeb } from '@electron-forge/maker-deb';
+import type { ForgeConfig } from "@electron-forge/shared-types";
+import { MakerSquirrel } from "@electron-forge/maker-squirrel";
+import { MakerZIP } from "@electron-forge/maker-zip";
+import { MakerDeb } from "@electron-forge/maker-deb";
 import { VitePlugin } from "@electron-forge/plugin-vite";
 
 const config: ForgeConfig = {
-  packagerConfig: {},
+  packagerConfig: {
+    icon: "icon/icon",
+    name: "CueB",
+    appCopyright: "2024 Bithell Studios Ltd.",
+    appCategoryType: "public.app-category.utilities",
+  },
   rebuildConfig: {},
   makers: [
     //new MakerSquirrel({}),
