@@ -11,6 +11,7 @@ const config: ForgeConfig = {
     name: "CueB",
     appCopyright: "2024 Bithell Studios Ltd.",
     appCategoryType: "public.app-category.utilities",
+    executableName: "cueb-server",
   },
   rebuildConfig: {},
   makers: [
