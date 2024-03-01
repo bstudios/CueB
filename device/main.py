@@ -494,6 +494,7 @@ async def retransmitState():
     while True:
         if (state != serverState):
             transmitState()
+            print("Retransmitting state as states do not match",state,serverState)
         await asyncio.sleep_ms(200)
 
 asyncio.create_task(retransmitState())
@@ -516,6 +517,8 @@ def oscMessageRecieved(timetag, data):
         if (state != int(args[0])):
             setState(int(args[0]))
             print("[OSC] Recieved state message from", src, "with state", int(args[0]))
+        else:
+            transmitState()
     elif (oscaddr == "/cueb/outstationState" and len(args) == 0 and tags == "" and src != deviceIp):
         serverState = -1
         transmitState()
