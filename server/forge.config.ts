@@ -3,6 +3,7 @@ import { MakerSquirrel } from "@electron-forge/maker-squirrel";
 import { MakerZIP } from "@electron-forge/maker-zip";
 import { MakerDeb } from "@electron-forge/maker-deb";
 import { VitePlugin } from "@electron-forge/plugin-vite";
+import { PublisherGithub } from "@electron-forge/publisher-github";
 
 const config: ForgeConfig = {
   packagerConfig: {
@@ -38,6 +39,17 @@ const config: ForgeConfig = {
           config: "vite.renderer.config.ts",
         },
       ],
+    }),
+  ],
+  publishers: [
+    new PublisherGithub({
+      repository: {
+        owner: "bstudios",
+        name: "cueb",
+      },
+      prerelease: false,
+      draft: false,
+      tagPrefix: "v",
     }),
   ],
 };

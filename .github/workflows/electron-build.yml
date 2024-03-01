@@ -5,11 +5,13 @@ on:
     branches: ["Gen2"]
   push:
     branches: ["Gen2"]
+  release:
+    types: ["created"]
 
-concurrency: 
+concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
-    
+
 jobs:
   generateClientCode:
     uses: ./.github/workflows/build-client.yml
@@ -29,7 +31,7 @@ jobs:
         with:
           node-version: 18
           cache: npm
-          cache-dependency-path: '**/package-lock.json'
+          cache-dependency-path: "**/package-lock.json"
       - run: npm install
       - if: matrix.os == 'windows-latest'
         uses: microsoft/setup-msbuild@v1.1
@@ -39,9 +41,15 @@ jobs:
           name: client-dist
           path: ./server/public
       - run: npm run make
+        if: github.event_name != 'release'
       - uses: actions/upload-artifact@v3
+        if: github.event_name != 'release'
         with:
           name: package-${{ matrix.os }}
           path: ./server/out/make/**/*.*
           retention-days: 20
           if-no-files-found: error
+      - run: npm run publish
+        if: github.event_name == 'release' && github.event.action == 'created'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
