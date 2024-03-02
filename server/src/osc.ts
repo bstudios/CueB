@@ -41,7 +41,7 @@ export class OSC {
       OSC.servers[port] = createOSCServer(port);
       OSC.servers[port].on("message", (msg, rinfo) => {
         if (
-          msg[0] == "/cueb/outstationState" &&
+          msg[0].startsWith("/cueb/outstationState") &&
           msg.length === 3 &&
           typeof msg[1] === "number"
         ) {
@@ -60,13 +60,16 @@ export class OSC {
               }
               eventEmitter.emit("trpc.deviceStatus");
             }
-            OSC.messageDevice(
-              deviceId,
-              "/cueb/outstationState",
-              OSC.deviceStatus[deviceId]
-            ); // Echo the state back to the device to confirm it was received
+            if (msg[0] === "/cueb/outstationState/confirmInSync") {
+              console.log("Returning status back to device", msg[1], deviceId);
+              OSC.messageDevice(
+                deviceId,
+                "/cueb/outstationState/confirmInSync",
+                OSC.deviceStatus[deviceId]
+              ); // Echo the state back to the device to confirm it was received
+            }
           }
-        } else if (msg[0] == "/cueb/pong" && msg.length === 2) {
+        } else if (msg[0] === "/cueb/pong" && msg.length === 2) {
           const deviceId = OSC.ipsToDevices[rinfo.address];
           if (deviceId) {
             OSC.devicePingChecks[deviceId].lastPingReceivedTimestamp =
@@ -124,8 +127,17 @@ export class OSC {
             OSC.devicePingChecks[deviceId].lastPingReceivedTimestamp >=
             3000
         ) {
-          OSC.messageDevice(deviceId, "/cueb/ping");
-          console.log("Pinging device", deviceId);
+          // We haven't either sent the device a message or heard from it for a while - we should ping it. That said, if we haven't heard from it for a long time then we should reduce the frequency of pings to save network bandwidth
+          if (
+            Date.now() -
+              OSC.devicePingChecks[deviceId].lastPingReceivedTimestamp <=
+              10000 ||
+            Date.now() - OSC.devicePingChecks[deviceId].lastPingSentTimestamp >=
+              2000
+          ) {
+            OSC.messageDevice(deviceId, "/cueb/ping");
+            console.log("Pinging device", deviceId);
+          }
         }
       }, 200),
       checkInterval: setInterval(() => {
@@ -135,14 +147,20 @@ export class OSC {
             OSC.devicePingChecks[deviceId].lastPingReceivedTimestamp >
           5000
         ) {
-          if (OSC.deviceStatus[deviceId] != false) {
+          if (OSC.deviceStatus[deviceId] !== false) {
             console.log("Device timed out", deviceId);
             OSC.deviceStatus[deviceId] = false;
             eventEmitter.emit("trpc.deviceStatus");
           }
         }
-        // Similarly, if we're not sure what a device's state is (it probably just joined the network) then we should ask it - it'll reply with it
-        if (OSC.deviceStatus[deviceId] === false) {
+        if (
+          Date.now() -
+            OSC.devicePingChecks[deviceId].lastPingReceivedTimestamp <=
+            5000 &&
+          OSC.deviceStatus[deviceId] === false
+        ) {
+          // If we're not sure what a device's state is (it probably just joined the network) then we should ask it - it'll reply with it, but only if its actually connected
+          console.log("Asking device for status", deviceId);
           OSC.messageDevice(deviceId, "/cueb/outstationState");
         }
       }, 200),
@@ -165,6 +183,7 @@ export class OSC {
   }
   static setStatus(deviceId: number, status: number) {
     if (status !== OSC.deviceStatus[deviceId]) {
+      console.log("Setting status", deviceId, status);
       OSC.deviceResendStatus[deviceId]["deviceNewStatus"] = status;
       OSC.messageDevice(deviceId, "/cueb/outstationState", status);
     }
