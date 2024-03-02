@@ -71,7 +71,7 @@ print("[MAIN] Booting version", VERSION)
 Main State Logic
 '''
 state = 0 # The state we are in
-serverState = -1 # The state that the server thinks we are in - minus 1 is unknown state - server isn't sure
+serverState = 1 # The state that the server thinks we are in - minus 1 is unknown state - server isn't sure. Set to 1 to start with to prevent excess retransmision on boot
 def translateState(stateInt):
     # Translates the state integer into a human readable string
     if (stateInt == 0):
@@ -136,9 +136,6 @@ def setState(newState):
     elif (newState == 7):
         LEDFlash(getLEDIdByName("OUTSTATION-STANDBY"))
         LEDFlash(getLEDIdByName("OUTSTATION-GO"))
-
-def transmitState():
-    oscClient.send("/cueb/outstationState", state, deviceUniqueId)
 
 '''
 Setup Buttons & LEDs - Interrupts
@@ -489,12 +486,15 @@ async def oscServer(host, port, cb, **params):
     setState(0)
     print("[OSC] Server shutdown")
 
+def transmitState(confirmInSync=False):
+    oscClient.send("/cueb/outstationState/confirmInSync" if confirmInSync else "/cueb/outstationState", state, deviceUniqueId)
+    
 async def retransmitState():
-    # Rebroadcast the state every 200ms if the server has ended up in a different state - this is normally if they misheard
+    # Rebroadcast the state every 200ms if the server has ended up in a different state - this is normally if they didn't hear the message the first time to say that state had changed
     while True:
         if (state != serverState):
-            transmitState()
-            print("Retransmitting state as states do not match",state,serverState)
+            transmitState(True)
+            print("[OSC] Retransmitting state as state held does not match known server state",state,serverState)
         await asyncio.sleep_ms(200)
 
 asyncio.create_task(retransmitState())
@@ -513,17 +513,24 @@ def oscMessageRecieved(timetag, data):
         return
     lastOSCMessageReceived = time.ticks_ms()
     if (oscaddr == "/cueb/outstationState" and len(args) == 1 and tags == "f" and src != deviceIp):
+        # A message has come in from the server with a state to set the state of this device to
         serverState = int(args[0])
         if (state != int(args[0])):
-            setState(int(args[0]))
-            print("[OSC] Recieved state message from", src, "with state", int(args[0]))
+            setState(int(args[0])) # This will also transmit the state
+            print("[OSC] Recieved state change message from", src, "with state", int(args[0]))
         else:
+            print("[OSC] Recieved state retransmit message from", src, "with state", int(args[0]),"so replying to acknowledge")
             transmitState()
+    elif (oscaddr == "/cueb/outstationState/confirmInSync" and len(args) == 1 and tags == "f" and src != deviceIp):
+        # Server is confirming its state for us to provide reassurance - we don't need to return this (or we get in a loop!)
+        print("[OSC] Server confirms its state is",args[0])
+        serverState = int(args[0])
     elif (oscaddr == "/cueb/outstationState" and len(args) == 0 and tags == "" and src != deviceIp):
+        # The server is asking us to confirm what the state is - we should assume the server doesn't know
         serverState = -1
         transmitState()
     elif (oscaddr == "/cueb/ping" and len(args) == 0 and tags == "" and src != deviceIp):
-        print("[OSC] Ping from", src)
+        print("[OSC] Ping from", src, "returning pong")
         oscClient.send("/cueb/pong", deviceUniqueId)
     else:
         print(oscaddr)
