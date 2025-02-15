@@ -396,7 +396,7 @@ async def route_config(request, response):
             else:
                 formData[vals[0]] = vals[1]
         
-        print("[WEB] Recieved formdata", formData)
+        print("[WEB] Received formdata", formData)
         for key,value in formData.items():
             if (str(configStore.getConfig(key)) != value):
                 print("[WEB] Detected config changed for {0} from {1} to {2}".format(key, str(configStore.getConfig(key)), value))
@@ -506,7 +506,7 @@ async def handle_request(sock, data, caddr, **params):
 Function that handles receipt of an OSC message
 '''
 lastOSCMessageReceived = 0
-def oscMessageRecieved(timetag, data):
+def oscMessageReceived(timetag, data):
     global lastOSCMessageReceived, serverState
     oscaddr, tags, args, src = data
     if (oscaddr.startswith("/reply/")):
@@ -517,9 +517,9 @@ def oscMessageRecieved(timetag, data):
         serverState = int(args[0])
         if (state != int(args[0])):
             setState(int(args[0])) # This will also transmit the state
-            print("[OSC] Recieved state change message from", src, "with state", int(args[0]))
+            print("[OSC] Received state change message from", src, "with state", int(args[0]))
         else:
-            print("[OSC] Recieved state retransmit message from", src, "with state", int(args[0]),"so replying to acknowledge")
+            print("[OSC] Received state retransmit message from", src, "with state", int(args[0]),"so replying to acknowledge")
             transmitState()
     elif (oscaddr == "/cueb/outstationState/confirmInSync" and len(args) == 1 and tags == "f" and src != deviceIp):
         # Server is confirming its state for us to provide reassurance - we don't need to return this (or we get in a loop!)
@@ -569,8 +569,8 @@ asyncio.create_task(isConnectedToAServer())
 
 
 try:
-    # To listen to OSC broadcast instead, change to asyncio.run(oscServer(deviceRoutingPrefix, int(configStore.getConfig("osc-recieveport")), handle_request, dispatch=oscMessageRecieved))
-    asyncio.run(oscServer(deviceIp, int(configStore.getConfig("osc-recieveport")), handle_request, dispatch=oscMessageRecieved))
+    # To listen to OSC broadcast instead, change to asyncio.run(oscServer(deviceRoutingPrefix, int(configStore.getConfig("osc-recieveport")), handle_request, dispatch=oscMessageReceived))
+    asyncio.run(oscServer(deviceIp, int(configStore.getConfig("osc-recieveport")), handle_request, dispatch=oscMessageReceived))
 except KeyboardInterrupt:
     setState(0)
     pass
