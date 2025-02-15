@@ -4,24 +4,24 @@ This is the code for the CueB Gen 2. It is a different architecture to [Gen 1](h
 
 The code is split into three parts:
 
-- `device` - the code that runs on the Pico, in Micropython
-- `server` - an electron app, which serves a web interface and communicates with the devices
+- `device` - the code that runs on the Pico outstation, in Micropython
+- `server` - an electron app, which serves a web interface and communicates with the outstations
 - `client` - a React web interface, which is served by the server
 
-## Communication with Devices
+## Communication with Outstations
 
-Communication between the server and the devices is over OSC. Only one server can exist within a given subnet, as the devices rely on keeping track of what they think the server's state is.
+Communication between the server and the outstations is over OSC. Only one server can exist within a given subnet, as the outstations rely on keeping track of what they think the server's state is.
 
-### Device States
+### Outstation States
 
-Each individual device is responsible for managing its own state, and the server communicates with each devices to confirm its state.
+Each individual outstation is responsible for managing its own state, and the server communicates with each outstations to confirm its state.
 
-There are two ways of changing the state of a device. Devices always boot with a state of 1.
+There are two ways of changing the state of a outstation. Outstations always boot with a state of 1.
 
 | State Number | State Name             | Red Button LED 🔴 | Green Button LED 🟢 | Remarks                                       |
 | ------------ | ---------------------- | ----------------- | ------------------- | --------------------------------------------- |
-| 0            | Error                  |                   |                     | Device boots in this state                    |
-| 1            | Ready                  |                   |                     | Device is idle                                |
+| 0            | Error                  |                   |                     | Outstation boots in this state                |
+| 1            | Ready                  |                   |                     | Outstation is idle                            |
 | 2            | Unacknowledged Standby | ⚡                |                     | DSM is waiting for acknowledgement of standby |
 | 3            | Acknowledged Standby   | 🔴                |                     | Outstation has acknowledged                   |
 | 4            | Unacknowledged Go      |                   | ⚡                  | (not used)                                    |
@@ -29,72 +29,74 @@ There are two ways of changing the state of a device. Devices always boot with a
 | 6            | Panic/Vegas            | 🔴                | 🟢                  | User trying to get attention of DSM           |
 | 7            | Identify/Flash         | ⚡                | ⚡                  | To identify an outstation                     |
 
-### Device changes own state
+### Outstation changes own state
 
-If a user presses a button on a device, this will change its state. The device will then broadcast its new state to the server, which will confirm it.
+If a user presses a button on a outstation, this will change its state. The outstation will then broadcast its new state to the server, which will confirm it.
 
 ```mermaid
 sequenceDiagram
-  participant Device
+  participant Outstation
   participant Server
-  Note right of Device: User presses button
-  Device->>Server: /cueb/outstationState
-  Note left of Server: Two arguments: state and device unique ID
+  Note right of Outstation: User presses button
+  Outstation->>Server: /cueb/outstationState
+  Note left of Server: Two arguments: state and outstation unique ID
   loop Until acknowledged
-    Device->>Server: /cueb/outstationState/confirmInSync
-    Note left of Server: Two arguments: state and device unique ID
+    Outstation->>Server: /cueb/outstationState/confirmInSync
+    Note left of Server: Two arguments: state and outstation unique ID
   end
-  Server->>Device: /cueb/outstationState/confirmInSync
-  Note right of Device: One argument: state.
+  Server->>Outstation: /cueb/outstationState/confirmInSync
+  Note right of Outstation: One argument: state.
 ```
 
-### Server changes device state
+### Server changes outstation state
 
-The server can send a message to change a device's state. The device will confirm that it has received the new state.
+The server can send a message to change a outstation's state. The outstation will confirm that it has received the new state.
 
 ```mermaid
 sequenceDiagram
   participant Client
   participant Server
-  participant Device
+  participant Outstation
   Client->>Server: User presses button
-  Server->>Device: /cueb/outstationState
-  Note right of Device: On argument: state
-  Device->>Server: /cueb/outstationState
-  Note left of Server: Two arguments: state and device unique ID
+  Server->>Outstation: /cueb/outstationState
+  Note right of Outstation: On argument: state
+  Outstation->>Server: /cueb/outstationState
+  Note left of Server: Two arguments: state and outstation unique ID
 ```
 
 ### Ping/Pong messages
 
-The server can send a ping message to the device, which will reply with a pong message. This is used to check if the device is still connected to the network.
+The server can send a ping message to the outstation, which will reply with a pong message. This is used to check if the outstation is still connected to the network.
 
 ```mermaid
 sequenceDiagram
   participant Server
-  participant Device
-  Server->>Device: /cueb/ping
-  Note right of Device: No arguments
-  Device->>Server: /cueb/pong
-  Note left of Server: One argument: device unique ID
+  participant Outstation
+  Server->>Outstation: /cueb/ping
+  Note right of Outstation: No arguments
+  Outstation->>Server: /cueb/pong
+  Note left of Server: One argument: outstation unique ID
 ```
 
-### Determining the state of a device
+### Determining the state of a outstation
 
-The server can, at any time, ask a device to transmit its state.
+The server can, at any time, ask a outstation to transmit its state.
 
 ```mermaid
 sequenceDiagram
   participant Server
-  participant Device
-  Server->>Device: /cueb/outstationState
-  Note right of Device: No arguments
+  participant Outstation
+  Server->>Outstation: /cueb/outstationState
+  Note right of Outstation: No arguments
   loop Until acknowledged
-    Device->>Server: /cueb/outstationState/confirmInSync
-    Note left of Server: Two arguments: state and device unique ID
+    Outstation->>Server: /cueb/outstationState/confirmInSync
+    Note left of Server: Two arguments: state and outstation unique ID
   end
-  Server->>Device: /cueb/outstationState/confirmInSync
-  Note right of Device: One argument: state.
+  Server->>Outstation: /cueb/outstationState/confirmInSync
+  Note right of Outstation: One argument: state.
 ```
+
+## Client / Server code
 
 ## Updating
 
@@ -103,7 +105,7 @@ sequenceDiagram
 - Create and publish a new release
 - (Github action will add files to release)
 
-## Device status lights
+## Outstation status lights
 
 | LED State | Color | Status                                              |
 | --------- | ----- | --------------------------------------------------- |
@@ -114,6 +116,6 @@ sequenceDiagram
 | Off       | 🔴    | No network                                          |
 | Off       | 🟡    | No messages received from server in last 10 minutes |
 
-## Tracking deployed devices
+## Tracking deployed outstations
 
-List of devices produced is in the wiki: https://github.com/bstudios/CueB/wiki
+List of outstations produced is in the wiki: https://github.com/bstudios/CueB/wiki
