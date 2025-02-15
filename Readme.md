@@ -96,16 +96,7 @@ sequenceDiagram
   Note right of Outstation: One argument: state.
 ```
 
-## Client / Server code
-
-## Updating
-
-- Bump package.json version for client & server
-- Commit to gen2 branch and push
-- Create and publish a new release
-- (Github action will add files to release)
-
-## Outstation status lights
+### Outstation status lights
 
 | LED State | Color | Status                                              |
 | --------- | ----- | --------------------------------------------------- |
@@ -115,6 +106,76 @@ sequenceDiagram
 | Flashing  | 🟡    | No messages received from server in last 10 seconds |
 | Off       | 🔴    | No network                                          |
 | Off       | 🟡    | No messages received from server in last 10 minutes |
+
+## Client / Server code
+
+The server runs as an electron app, and serves the client code. The client code is a React app.
+
+The server code is in the `server` directory, and the client code is in the `client` directory.
+
+The key file in the server code is `osc.ts` which handles all the OSC communication with the outstations.
+
+### Package Dependencies
+
+#### Server Packages
+
+##### Core Framework
+- `electron` (v28.2.3) - Desktop application framework
+- `electron-forge` - Tool for building and publishing Electron apps
+- `vite` - Build tool and development server
+
+##### Communication
+- `node-osc` (v9.1.0) - OSC protocol implementation
+- `ws` (v8.16.0) - WebSocket client/server
+- `cors` (v2.8.5) - Cross-origin resource sharing middleware
+- `portfinder` (v1.0.32) - Port allocation utility
+
+##### Database
+- `better-sqlite3` (v9.4.1) - SQLite3 database driver
+- `drizzle-orm` (v0.29.3) - TypeScript ORM
+- `drizzle-kit` - Database migration tools
+
+##### API Layer
+- `@trpc/server` (v11.0.0-next-beta) - End-to-end typesafe API
+- `zod` (v3.22.4) - TypeScript-first schema validation
+
+##### Networking
+- `ip` (v2.0.1) - IP address utilities
+- `netmask` (v2.0.2) - Network mask parsing
+
+#### Client Packages
+
+##### Core Framework
+- `react` (v18.2.0) - UI library
+- `react-dom` (v18.2.0) - React DOM renderer
+- `react-router-dom` (v6.22.1) - Routing
+
+##### UI Components
+- `@mantine/core` (v7.5.3) - UI component library
+- `@mantine/dates` - Date/time components
+- `@mantine/form` - Form handling
+- `@mantine/notifications` - Toast notifications
+- `@tabler/icons-react` (v2.47.0) - Icon library
+
+##### Data Management
+- `@tanstack/react-query` (v5.21.7) - Data fetching/caching
+- `@trpc/client` - tRPC client
+- `@trpc/react-query` - React Query integration
+- `dayjs` (v1.11.10) - Date manipulation
+
+##### Development Tools
+- `typescript` (v5.2.2) - TypeScript compiler
+- `eslint` - Code linting
+- `postcss` - CSS processing
+- `vite` (v5.1.0) - Build tool
+
+### Updating
+
+- Bump package.json version for client & server
+- Commit to gen2 branch and push
+- Create and publish a new release
+- (Github action will add files to release)
+
 
 ## Tracking deployed outstations
 
